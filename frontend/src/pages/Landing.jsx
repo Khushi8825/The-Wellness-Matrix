@@ -17,7 +17,8 @@ function Landing() {
             className="w-150 md:w-225"
           />
         </div>
-
+        {/* Soft Red Overlay */}
+        <div className="absolute inset-0 bg-red-50 opacity-50"></div>
         {/* Content */}
         <div className="relative z-10">
           <h1 className="text-4xl md:text-5xl font-bold text-red-600">
@@ -60,7 +61,7 @@ function Landing() {
             "Downloadable reports",
           ].map((text, i) => (
             <div key={i} className="p-6 border rounded-xl text-center">
-              {text}
+                {text}
             </div>
           ))}
         </div>
