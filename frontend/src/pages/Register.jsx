@@ -14,12 +14,6 @@ function Register() {
   const [error, setError] = useState("");
 
   // 🔐 Strong password check algorithm
-  // Conditions:
-  // - Minimum 8 characters
-  // - At least 1 uppercase letter
-  // - At least 1 lowercase letter
-  // - At least 1 number
-  // - At least 1 special character
   const isStrongPassword = (password) => {
     const strongPasswordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -36,13 +30,11 @@ function Register() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Password match check
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
 
-    // Strong password validation
     if (!isStrongPassword(formData.password)) {
       setError(
         "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
@@ -50,101 +42,131 @@ function Register() {
       return;
     }
 
-    // ✅ Username uniqueness check
-    // TODO: When backend & database are connected,
-    // check if username already exists before creating user
-
+    // TODO: check username uniqueness from backend
     setError("");
     console.log("Register data:", formData);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-500 to-red-700">
-      <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-[linear-gradient(135deg,#f87171,#7f1d1d)]">
+      
+      {/* Drop animation styles */}
+      <style>
+        {`
+          @keyframes dropIn {
+            from {
+              opacity: 0;
+              transform: translateY(-30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}
+      </style>
+
+      {/* Register Card */}
+      <div
+        className="w-full max-w-lg rounded-2xl p-8
+        backdrop-blur-md
+        shadow-xl border border-white/30
+        bg-white/30 opacity-0"
+        style={{
+          animation: "dropIn 0.8s ease-out forwards",
+        }}
+      >
         <h2 className="text-3xl font-bold text-center text-red-600 mb-2">
           Create Account
         </h2>
-        <p className="text-center text-gray-500 mb-6">
+        <p className="text-center text-gray-700 mb-6">
           Join The Wellness Matrix
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* First Name */}
           <input
             type="text"
             name="firstName"
             placeholder="First Name"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+            className="w-full px-4 py-2 rounded-lg
+            bg-white/70 border border-gray-300
+            focus:ring-2 focus:ring-red-500 outline-none"
           />
 
-          {/* Last Name (Optional) */}
           <input
             type="text"
             name="lastName"
             placeholder="Last Name (Optional)"
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+            className="w-full px-4 py-2 rounded-lg
+            bg-white/70 border border-gray-300
+            focus:ring-2 focus:ring-red-500 outline-none"
           />
 
-          {/* Username */}
           <input
             type="text"
             name="username"
             placeholder="Choose a unique username"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+            className="w-full px-4 py-2 rounded-lg
+            bg-white/70 border border-gray-300
+            focus:ring-2 focus:ring-red-500 outline-none"
           />
 
-          {/* Email (Optional) */}
           <input
             type="email"
             name="email"
             placeholder="Email (Optional)"
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+            className="w-full px-4 py-2 rounded-lg
+            bg-white/70 border border-gray-300
+            focus:ring-2 focus:ring-red-500 outline-none"
           />
 
-          {/* Password */}
           <input
             type="password"
             name="password"
             placeholder="Create Password"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+            className="w-full px-4 py-2 rounded-lg
+            bg-white/70 border border-gray-300
+            focus:ring-2 focus:ring-red-500 outline-none"
           />
 
-          {/* Confirm Password */}
           <input
             type="password"
             name="confirmPassword"
             placeholder="Confirm Password"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+            className="w-full px-4 py-2 rounded-lg
+            bg-white/70 border border-gray-300
+            focus:ring-2 focus:ring-red-500 outline-none"
           />
 
-          {/* Error Message */}
           {error && (
             <p className="text-sm text-red-600 text-center">{error}</p>
           )}
 
-          {/* Register Button */}
           <button
             type="submit"
-            className="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition"
+            className="w-full bg-red-600 text-white py-2 rounded-lg
+            font-semibold hover:bg-red-700 transition"
           >
             Register
           </button>
         </form>
 
-        {/* Login Redirect */}
-        <p className="text-center text-sm text-gray-600 mt-6">
+        <p className="text-center text-sm text-gray-700 mt-6">
           Already have an account?{" "}
-          <Link to="/login" className="text-red-600 font-semibold hover:underline">
+          <Link
+            to="/login"
+            className="text-red-700 font-semibold hover:underline"
+          >
             Login
           </Link>
         </p>
