@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 function Navbar() {
   return (
     <nav className="fixed top-0 w-full bg-white shadow-sm z-50">
@@ -25,9 +26,11 @@ function Navbar() {
         </div>
 
         {/* Right: Login Button */}
+        <Link to="/login">
         <button className="bg-red-500 text-white px-5 py-2 rounded-full hover:bg-red-600 transition">
           Login
         </button>
+        </Link>
       </div>
     </nav>
   );

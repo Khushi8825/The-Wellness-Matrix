@@ -1,6 +1,7 @@
 import Navbar from "../components/Navbar";
 import Lottie from "lottie-react";
 import graphAnimation from "../assets/graph.json";
+import { Link } from "react-router-dom";
 
 function Landing() {
   return (
@@ -31,10 +32,12 @@ function Landing() {
             The Wellness Matrix helps you understand your health data with
             clarity, care, and complete transparency.
           </p>
-
-          <button className="mt-6 bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition">
-            Login
-          </button>
+          <Link to="/login">
+            {" "}
+            <button className="mt-6 bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition">
+              Login
+            </button>
+          </Link>
         </div>
       </section>
 
@@ -61,7 +64,7 @@ function Landing() {
             "Downloadable reports",
           ].map((text, i) => (
             <div key={i} className="p-6 border rounded-xl text-center">
-                {text}
+              {text}
             </div>
           ))}
         </div>

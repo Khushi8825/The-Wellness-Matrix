@@ -1,13 +1,16 @@
-import { useState } from 'react'
-import Landing from "./pages/Landing";
-function App() {
-  const [count, setCount] = useState(0)
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Landing, Login, Register } from "./pages";
 
+function App() {
   return (
-    <>
-      <Landing/>   
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
