@@ -27,7 +27,7 @@ function Register() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
@@ -37,19 +37,45 @@ function Register() {
 
     if (!isStrongPassword(formData.password)) {
       setError(
-        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
+        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
       );
       return;
     }
 
-    // TODO: check username uniqueness from backend
     setError("");
-    console.log("Register data:", formData);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Registration failed");
+        return;
+      }
+
+      console.log("✅ Backend response:", data);
+      alert("User registered successfully 🎉");
+    } catch (err) {
+      console.error("❌ Register error:", err);
+      setError("Server error. Please try again later.");
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[linear-gradient(135deg,#f87171,#7f1d1d)]">
-      
       {/* Drop animation styles */}
       <style>
         {`
@@ -148,9 +174,7 @@ function Register() {
             focus:ring-2 focus:ring-red-500 outline-none"
           />
 
-          {error && (
-            <p className="text-sm text-red-600 text-center">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
 
           <button
             type="submit"
