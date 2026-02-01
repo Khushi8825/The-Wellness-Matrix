@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+ 
 
 function Register() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -68,6 +71,7 @@ function Register() {
 
       console.log("✅ Backend response:", data);
       alert("User registered successfully 🎉");
+      navigate("/login");
     } catch (err) {
       console.error("❌ Register error:", err);
       setError("Server error. Please try again later.");

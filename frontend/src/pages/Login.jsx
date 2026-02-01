@@ -1,6 +1,40 @@
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 function Login() {
+  const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
+
+    const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Login failed");
+        return;
+      }
+
+      localStorage.setItem("token", data.token); // ✅ save JWT
+      navigate("/dashboard");                    // ✅ redirect
+    } catch (err) {
+      setError("Server error. Please try again later.");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[linear-gradient(135deg,#f87171,#7f1d1d)]">
       
@@ -38,15 +72,19 @@ function Login() {
         </p>
 
         {/* Login Form */}
-        <form className="space-y-5">
+        <form className="space-y-5" onSubmit={handleSubmit}>
           {/* Username */}
           <div>
             <label className="block text-sm font-medium text-gray-800 mb-1">
-              Username
+              Email
             </label>
             <input
               type="text"
               placeholder="Enter your username"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               className="w-full px-4 py-2 rounded-lg
               bg-white/70 border border-gray-300
               focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -61,6 +99,10 @@ function Login() {
             <input
               type="password"
               placeholder="Enter your password"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
               className="w-full px-4 py-2 rounded-lg
               bg-white/70 border border-gray-300
               focus:outline-none focus:ring-2 focus:ring-red-500"
