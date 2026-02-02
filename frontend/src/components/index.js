@@ -6,3 +6,4 @@ export { default as VitalsSection } from "./HealthForm/VitalsSection";
 export { default as BloodPressureSection } from "./HealthForm/BloodPressureSection";
 export { default as LifestyleSection } from "./HealthForm/LifestyleSection";
 export { default as FormActions } from "./HealthForm/FormActions";
+export { default as SeverityCard } from "./SeverityCard"

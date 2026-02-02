@@ -1,7 +1,21 @@
 import HeartRateChart from "../components/Charts/HeartRateChart";
 import HealthForm from "../components/HealthForm/HealthForm";
-// import { HeartRateChart, HealthForm } from "../components";
+import { SeverityCard } from "../components/index";
 
+const [severityData, setSeverityData] = useState(null);
+
+useEffect(() => {
+  fetch("/api/health/severity", {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.severity) setSeverityData(data);
+    });
+}, []);
+const needsDoctor = severity === "CRITICAL" || severity === "WARNING";
 const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center">
@@ -38,6 +52,17 @@ const Dashboard = () => {
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             Heart Rate Overview
           </h3>
+          {severityData && (
+            <SeverityCard
+              severity={severityData.severity}
+              reasons={severityData.reasons}
+            />
+          )}
+          {needsDoctor && (
+            <p className="mt-2 text-sm text-red-600">
+              ⚠️ We recommend consulting a healthcare professional.
+            </p>
+          )}
 
           {/* Chart automatically adjusts because ResponsiveContainer */}
           <div className="w-full h-62.5 sm:h-75">
