@@ -1,5 +1,6 @@
 import HeartRateChart from "../components/Charts/HeartRateChart";
-import HealthForm from "../components/HealthForm";
+import HealthForm from "../components/HealthForm/HealthForm";
+// import { HeartRateChart, HealthForm } from "../components";
 
 const Dashboard = () => {
   return (

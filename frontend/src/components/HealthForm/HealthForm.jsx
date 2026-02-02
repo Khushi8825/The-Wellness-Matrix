@@ -1,4 +1,10 @@
 import { useState } from "react";
+import DateSection from "./DateSection";
+import VitalsSection from "./VitalsSection";
+import BloodPressureSection from "./BloodPressureSection";
+import LifestyleSection from "./LifestyleSection";
+import FormActions from "./FormActions";
+
 
 const HealthForm = () => {
   const [data, setData] = useState({
@@ -27,12 +33,17 @@ const HealthForm = () => {
         border border-white/30
       "
     >
-      <h3 className="text-lg font-semibold text-white">
+      <DateSection />
+      <VitalsSection />
+      <BloodPressureSection />
+      <LifestyleSection />
+      <FormActions />
+      {/* <h3 className="text-lg font-semibold text-white">
         Add Daily Health Record
-      </h3>
+      </h3> */}
 
       {/* Heart Rate */}
-      <input
+      {/* <input
         placeholder="Heart Rate"
         onChange={(e) => setData({ ...data, heartRate: e.target.value })}
         className="
@@ -47,10 +58,10 @@ const HealthForm = () => {
           focus:ring-2
           focus:ring-red-500
         "
-      />
+      /> */}
 
       {/* Blood Pressure */}
-      <input
+      {/* <input
         placeholder="BP (120/80)"
         onChange={(e) => setData({ ...data, bp: e.target.value })}
         className="
@@ -65,10 +76,10 @@ const HealthForm = () => {
           focus:ring-2
           focus:ring-red-500
         "
-      />
+      /> */}
 
       {/* Weight */}
-      <input
+      {/* <input
         placeholder="Weight (kg)"
         onChange={(e) => setData({ ...data, weight: e.target.value })}
         className="
@@ -83,10 +94,10 @@ const HealthForm = () => {
           focus:ring-2
           focus:ring-red-500
         "
-      />
+      /> */}
 
       {/* Meals */}
-      <textarea
+      {/* <textarea
         placeholder="Meals"
         rows={3}
         onChange={(e) => setData({ ...data, meals: e.target.value })}
@@ -103,10 +114,10 @@ const HealthForm = () => {
           focus:ring-red-500
           resize-none
         "
-      />
+      /> */}
 
       {/* Save Button (LOGIC UNCHANGED) */}
-      <button
+      {/* <button
         type="submit"
         className="
           w-full
@@ -124,7 +135,7 @@ const HealthForm = () => {
         "
       >
         Save Health Record
-      </button>
+      </button> */}
     </form>
   );
 };
