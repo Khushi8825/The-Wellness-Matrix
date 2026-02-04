@@ -1,8 +1,9 @@
 const pool = require("../config/db");
+const analyzeSeverity = require("../services/severity");
 
 /**
  * POST /api/health/log
- * Add or update daily health record
+ * Save daily health log + auto calculate severity
  */
 const addHealthLog = async (req, res) => {
   try {
@@ -19,21 +20,14 @@ const addHealthLog = async (req, res) => {
     } = req.body;
 
     if (!log_date) {
-      return res.status(400).json({
-        message: "log_date is required",
-      });
+      return res.status(400).json({ message: "log_date is required" });
     }
 
-    const query = `
+    /* 1️⃣ SAVE / UPDATE DAILY HEALTH LOG */
+    const insertQuery = `
       INSERT INTO health_logs (
-        user_id,
-        log_date,
-        heart_rate,
-        systolic_bp,
-        diastolic_bp,
-        blood_sugar,
-        weight,
-        meals
+        user_id, log_date, heart_rate, systolic_bp, diastolic_bp,
+        blood_sugar, weight, meals
       )
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
       ON CONFLICT (user_id, log_date)
@@ -48,7 +42,7 @@ const addHealthLog = async (req, res) => {
       RETURNING *;
     `;
 
-    const values = [
+    await pool.query(insertQuery, [
       userId,
       log_date,
       heart_rate,
@@ -57,16 +51,45 @@ const addHealthLog = async (req, res) => {
       blood_sugar,
       weight,
       meals,
-    ];
+    ]);
 
-    const { rows } = await pool.query(query, values);
+    /* 2️⃣ FETCH LAST 7 DAYS DATA */
+    const logsQuery = `
+      SELECT heart_rate, systolic_bp, diastolic_bp, blood_sugar, meals
+      FROM health_logs
+      WHERE user_id = $1
+        AND log_date >= CURRENT_DATE - INTERVAL '7 days'
+      ORDER BY log_date ASC;
+    `;
 
+    const { rows: logs } = await pool.query(logsQuery, [userId]);
+
+    /* 3️⃣ ANALYZE SEVERITY */
+    const severityResult = analyzeSeverity(logs);
+
+    /* 4️⃣ STORE SEVERITY RESULT */
+    const severityInsertQuery = `
+      INSERT INTO health_severity (
+        user_id, start_date, end_date, severity, reasons
+      )
+      VALUES ($1, CURRENT_DATE - INTERVAL '7 days', CURRENT_DATE, $2, $3);
+    `;
+
+    await pool.query(severityInsertQuery, [
+      userId,
+      severityResult.severity,
+      severityResult.reasons.join(", "),
+    ]);
+
+    /* 5️⃣ SEND RESPONSE */
     return res.status(201).json({
-      message: "Health log saved successfully",
-      data: rows[0],
+      message: "Health log saved & severity updated",
+      severity: severityResult.severity,
+      reasons: severityResult.reasons,
     });
+
   } catch (error) {
-    console.error("❌ Health Log Error:", error);
+    console.error("❌ Health Log + Severity Error:", error);
 
     return res.status(500).json({
       message: "Failed to save health log",
