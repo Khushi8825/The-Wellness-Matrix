@@ -9,6 +9,9 @@ const addHealthLog = async (req, res) => {
   try {
     const userId = req.user.id;
 
+    const sanitizeNumber = (value) =>
+      value === "" || value === undefined ? null : Number(value);
+
     const {
       log_date,
       heart_rate,
@@ -18,6 +21,15 @@ const addHealthLog = async (req, res) => {
       weight,
       meals,
     } = req.body;
+
+    const cleanedData = {
+      heart_rate: sanitizeNumber(heart_rate),
+      systolic_bp: sanitizeNumber(systolic_bp),
+      diastolic_bp: sanitizeNumber(diastolic_bp),
+      blood_sugar: sanitizeNumber(blood_sugar),
+      weight: sanitizeNumber(weight),
+      meals: meals || null,
+    };
 
     if (!log_date) {
       return res.status(400).json({ message: "log_date is required" });
@@ -45,12 +57,12 @@ const addHealthLog = async (req, res) => {
     await pool.query(insertQuery, [
       userId,
       log_date,
-      heart_rate,
-      systolic_bp,
-      diastolic_bp,
-      blood_sugar,
-      weight,
-      meals,
+      cleanedData.heart_rate,
+      cleanedData.systolic_bp,
+      cleanedData.diastolic_bp,
+      cleanedData.blood_sugar,
+      cleanedData.weight,
+      cleanedData.meals,
     ]);
 
     /* 2️⃣ FETCH LAST 7 DAYS DATA */
@@ -87,7 +99,6 @@ const addHealthLog = async (req, res) => {
       severity: severityResult.severity,
       reasons: severityResult.reasons,
     });
-
   } catch (error) {
     console.error("❌ Health Log + Severity Error:", error);
 

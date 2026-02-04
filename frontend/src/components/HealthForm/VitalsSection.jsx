@@ -1,4 +1,4 @@
-const VitalsSection = () => {
+const VitalsSection = ({ data, setData }) => {
   return (
     <div>
       <h4 className="text-sm font-semibold text-gray-800 mb-3">
@@ -10,11 +10,20 @@ const VitalsSection = () => {
           type="number"
           placeholder="Heart Rate (bpm)"
           className="input"
+          value={data.heartRate}
+          onChange={(e) =>
+            setData((prev) => ({ ...prev, heartRate: e.target.value }))
+          }
         />
+
         <input
           type="number"
           placeholder="Weight (kg)"
           className="input"
+          value={data.weight}
+          onChange={(e) =>
+            setData((prev) => ({ ...prev, weight: e.target.value }))
+          }
         />
       </div>
     </div>
@@ -22,4 +31,3 @@ const VitalsSection = () => {
 };
 
 export default VitalsSection;
-

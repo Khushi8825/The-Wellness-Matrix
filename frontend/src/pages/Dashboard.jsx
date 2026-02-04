@@ -87,7 +87,7 @@ const Dashboard = () => {
             Add Daily Health Record
           </h3>
 
-          <HealthForm />
+          <HealthForm onSeverityUpdate={setSeverityData} />
         </div>
       </div>
     </div>

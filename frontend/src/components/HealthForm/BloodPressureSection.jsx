@@ -1,4 +1,4 @@
-const BloodPressureSection = () => {
+const BloodPressureSection = ({ data, setData }) => {
   return (
     <div>
       <h4 className="text-sm font-semibold text-gray-800 mb-3">
@@ -10,11 +10,20 @@ const BloodPressureSection = () => {
           type="number"
           placeholder="Systolic"
           className="input"
+          value={data.systolicBP}
+          onChange={(e) =>
+            setData((prev) => ({ ...prev, systolicBP: e.target.value }))
+          }
         />
+
         <input
           type="number"
           placeholder="Diastolic"
           className="input"
+          value={data.diastolicBP}
+          onChange={(e) =>
+            setData((prev) => ({ ...prev, diastolicBP: e.target.value }))
+          }
         />
       </div>
     </div>

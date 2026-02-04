@@ -5,19 +5,50 @@ import BloodPressureSection from "./BloodPressureSection";
 import LifestyleSection from "./LifestyleSection";
 import FormActions from "./FormActions";
 
-
-const HealthForm = () => {
+const HealthForm = ({ onSeverityUpdate }) => {
   const [data, setData] = useState({
+    date: "",
     heartRate: "",
-    bp: "",
+    systolicBP: "",
+    diastolicBP: "",
+    bloodSugar: "",
     weight: "",
     meals: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(data);
-    // API call later
+
+    try {
+      const res = await fetch("http://localhost:5000/api/health/log", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          log_date: data.date,
+          heart_rate: data.heartRate,
+          systolic_bp: data.systolicBP,
+          diastolic_bp: data.diastolicBP,
+          blood_sugar: data.bloodSugar,
+          weight: data.weight,
+          meals: data.meals,
+        }),
+      });
+
+      const result = await res.json();
+
+      // 🔥 INSTANT SEVERITY UPDATE
+      if (result.severity && onSeverityUpdate) {
+        onSeverityUpdate({
+          severity: result.severity,
+          reasons: result.reasons,
+        });
+      }
+    } catch (err) {
+      console.error("Health log submit failed:", err);
+    }
   };
 
   return (
@@ -33,109 +64,12 @@ const HealthForm = () => {
         border border-white/30
       "
     >
-      <DateSection />
-      <VitalsSection />
-      <BloodPressureSection />
-      <LifestyleSection />
+      {/* Pass setters to sections (NO UI BREAK) */}
+      <DateSection setData={setData} data={data} />
+      <VitalsSection setData={setData} data={data} />
+      <BloodPressureSection setData={setData} data={data} />
+      <LifestyleSection setData={setData} data={data} />
       <FormActions />
-      {/* <h3 className="text-lg font-semibold text-white">
-        Add Daily Health Record
-      </h3> */}
-
-      {/* Heart Rate */}
-      {/* <input
-        placeholder="Heart Rate"
-        onChange={(e) => setData({ ...data, heartRate: e.target.value })}
-        className="
-          w-full
-          px-4 py-2
-          rounded-lg
-          bg-white/70
-          border border-transparent
-          text-gray-800
-          placeholder-gray-500
-          focus:outline-none
-          focus:ring-2
-          focus:ring-red-500
-        "
-      /> */}
-
-      {/* Blood Pressure */}
-      {/* <input
-        placeholder="BP (120/80)"
-        onChange={(e) => setData({ ...data, bp: e.target.value })}
-        className="
-          w-full
-          px-4 py-2
-          rounded-lg
-          bg-white/70
-          border border-transparent
-          text-gray-800
-          placeholder-gray-500
-          focus:outline-none
-          focus:ring-2
-          focus:ring-red-500
-        "
-      /> */}
-
-      {/* Weight */}
-      {/* <input
-        placeholder="Weight (kg)"
-        onChange={(e) => setData({ ...data, weight: e.target.value })}
-        className="
-          w-full
-          px-4 py-2
-          rounded-lg
-          bg-white/70
-          border border-transparent
-          text-gray-800
-          placeholder-gray-500
-          focus:outline-none
-          focus:ring-2
-          focus:ring-red-500
-        "
-      /> */}
-
-      {/* Meals */}
-      {/* <textarea
-        placeholder="Meals"
-        rows={3}
-        onChange={(e) => setData({ ...data, meals: e.target.value })}
-        className="
-          w-full
-          px-4 py-2
-          rounded-lg
-          bg-white/70
-          border border-transparent
-          text-gray-800
-          placeholder-gray-500
-          focus:outline-none
-          focus:ring-2
-          focus:ring-red-500
-          resize-none
-        "
-      /> */}
-
-      {/* Save Button (LOGIC UNCHANGED) */}
-      {/* <button
-        type="submit"
-        className="
-          w-full
-          mt-4
-          bg-red-600
-          text-white
-          py-2.5
-          rounded-xl
-          font-semibold
-          shadow-lg
-          hover:bg-red-700
-          active:scale-[0.97]
-          transition-all
-          duration-200
-        "
-      >
-        Save Health Record
-      </button> */}
     </form>
   );
 };
