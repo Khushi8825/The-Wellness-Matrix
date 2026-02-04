@@ -1,22 +1,25 @@
+import {useState, useEffect} from "react";
 import HeartRateChart from "../components/Charts/HeartRateChart";
 import HealthForm from "../components/HealthForm/HealthForm";
 import { SeverityCard } from "../components/index";
 
-const [severityData, setSeverityData] = useState(null);
-
-useEffect(() => {
-  fetch("/api/health/severity", {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.severity) setSeverityData(data);
-    });
-}, []);
-const needsDoctor = severity === "CRITICAL" || severity === "WARNING";
 const Dashboard = () => {
+  const [severityData, setSeverityData] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/health/severity", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.severity) setSeverityData(data);
+      });
+  }, []);
+ const needsDoctor =
+  severityData?.severity === "CRITICAL" ||
+  severityData?.severity === "WARNING";
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center">
       {/* Main container */}
@@ -65,7 +68,7 @@ const Dashboard = () => {
           )}
 
           {/* Chart automatically adjusts because ResponsiveContainer */}
-          <div className="w-full h-62.5 sm:h-75">
+          <div className="w-full h-[300px] sm:h-[350px]">
             <HeartRateChart />
           </div>
         </div>
