@@ -44,6 +44,7 @@ const HealthForm = ({ onSeverityUpdate }) => {
         onSeverityUpdate({
           severity: result.severity,
           reasons: result.reasons,
+          explanation: result.explanation,
         });
       }
     } catch (err) {

@@ -1,3 +1,7 @@
+const {
+  generateHealthExplanation,
+} = require("../services/ai/healthExplanation.service");
+
 const pool = require("../config/db");
 const analyzeSeverity = require("../services/severity");
 
@@ -94,10 +98,25 @@ const addHealthLog = async (req, res) => {
     ]);
 
     /* 5️⃣ SEND RESPONSE */
+    // console.log("🤖 AI Explanation:", aiExplanation);
+    let aiExplanation = null;
+
+    try {
+      aiExplanation = await generateHealthExplanation(
+        severityResult.severity,
+        severityResult.reasons,
+      );
+    } catch (aiError) {
+      console.error("❌ AI ERROR (non-blocking):", aiError.message);
+      aiExplanation =
+        "Your health data has been recorded successfully. Please focus on maintaining healthy daily habits.";
+    }
+
     return res.status(201).json({
       message: "Health log saved & severity updated",
       severity: severityResult.severity,
       reasons: severityResult.reasons,
+      explanation: aiExplanation,
     });
   } catch (error) {
     console.error("❌ Health Log + Severity Error:", error);

@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import HeartRateChart from "../components/Charts/HeartRateChart";
 import HealthForm from "../components/HealthForm/HealthForm";
 import { SeverityCard } from "../components/index";
@@ -17,9 +17,9 @@ const Dashboard = () => {
         if (data.severity) setSeverityData(data);
       });
   }, []);
- const needsDoctor =
-  severityData?.severity === "CRITICAL" ||
-  severityData?.severity === "WARNING";
+  const needsDoctor =
+    severityData?.severity === "CRITICAL" ||
+    severityData?.severity === "WARNING";
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center">
       {/* Main container */}
@@ -56,11 +56,26 @@ const Dashboard = () => {
             Heart Rate Overview
           </h3>
           {severityData && (
-            <SeverityCard
-              severity={severityData.severity}
-              reasons={severityData.reasons}
-            />
+            <>
+              <SeverityCard
+                severity={severityData.severity}
+                reasons={severityData.reasons}
+              />
+
+              {/* 🤖 AI Explanation */}
+              {severityData.explanation && (
+                <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <h4 className="text-sm font-semibold text-blue-700 mb-1">
+                    AI Health Insight
+                  </h4>
+                  <p className="text-sm text-blue-800 leading-relaxed">
+                    {severityData.explanation}
+                  </p>
+                </div>
+              )}
+            </>
           )}
+
           {needsDoctor && (
             <p className="mt-2 text-sm text-red-600">
               ⚠️ We recommend consulting a healthcare professional.
