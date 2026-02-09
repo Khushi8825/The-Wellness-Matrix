@@ -126,7 +126,31 @@ const addHealthLog = async (req, res) => {
     });
   }
 };
+const getHealthChartData = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
+    const query = `
+      SELECT 
+        log_date,
+        heart_rate,
+        systolic_bp
+      FROM health_logs
+      WHERE user_id = $1
+        AND log_date >= CURRENT_DATE - INTERVAL '7 days'
+      ORDER BY log_date ASC;
+    `;
+
+    const { rows } = await pool.query(query, [userId]);
+
+    return res.json(rows);
+  } catch (error) {
+    console.error("❌ Chart Data Error:", error);
+    return res.status(500).json({ message: "Failed to fetch chart data" });
+  }
+};
 module.exports = {
   addHealthLog,
+  getHealthChartData,
 };
+

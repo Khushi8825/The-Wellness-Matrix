@@ -5,6 +5,7 @@ import { SeverityCard } from "../components/index";
 
 const Dashboard = () => {
   const [severityData, setSeverityData] = useState(null);
+  const [chartRefreshKey, setChartRefreshKey] = useState(0);
 
   useEffect(() => {
     fetch("/api/health/severity", {
@@ -84,7 +85,8 @@ const Dashboard = () => {
 
           {/* Chart automatically adjusts because ResponsiveContainer */}
           <div className="w-full h-[300px] sm:h-[350px]">
-            <HeartRateChart />
+            <HeartRateChart refreshKey={chartRefreshKey} />
+
           </div>
         </div>
 
@@ -102,7 +104,10 @@ const Dashboard = () => {
             Add Daily Health Record
           </h3>
 
-          <HealthForm onSeverityUpdate={setSeverityData} />
+          <HealthForm
+            onSeverityUpdate={setSeverityData}
+            onLogSaved={() => setChartRefreshKey((prev) => prev + 1)}
+          />
         </div>
       </div>
     </div>

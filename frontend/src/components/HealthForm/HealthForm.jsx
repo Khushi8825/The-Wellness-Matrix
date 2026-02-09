@@ -5,7 +5,7 @@ import BloodPressureSection from "./BloodPressureSection";
 import LifestyleSection from "./LifestyleSection";
 import FormActions from "./FormActions";
 
-const HealthForm = ({ onSeverityUpdate }) => {
+const HealthForm = ({ onSeverityUpdate,onLogSaved }) => {
   const [data, setData] = useState({
     date: "",
     heartRate: "",
@@ -49,6 +49,9 @@ const HealthForm = ({ onSeverityUpdate }) => {
       }
     } catch (err) {
       console.error("Health log submit failed:", err);
+    }
+    if (onLogSaved) {
+      onLogSaved(); // 🔥 triggers chart refresh
     }
   };
 
