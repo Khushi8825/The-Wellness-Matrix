@@ -4,25 +4,26 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-const generateHealthExplanation = async (severity, reasons) => {
+const generateHealthExplanation = async (severity, reasons, latestLog) => {
   const prompt = `
-You are a calm and responsible health assistant.
+You are a health assistant.
 
-Explain the user's health condition in very simple language.
+Explain the user's health condition clearly and specifically using the actual numbers provided.
 
-Rules:
-- Do NOT diagnose diseases
-- Do NOT use medical jargon
-- Do NOT scare the user
-- Speak politely and clearly
-- 3 to 4 short sentences only
+Current severity level: ${severity}
 
-Severity level: ${severity}
+Reasons detected:
+${reasons.join(", ")}
 
-Reasons:
-${reasons.map((r) => `- ${r}`).join("\n")}
+Latest readings:
+Heart Rate: ${latestLog?.heart_rate} bpm
+Systolic BP: ${latestLog?.systolic_bp} mmHg
+Diastolic BP: ${latestLog?.diastolic_bp} mmHg
+Blood Sugar: ${latestLog?.blood_sugar}
 
-End with gentle lifestyle advice.
+Do not give generic advice.
+Base explanation on these numbers.
+Keep it simple and non-alarming.
 `;
 
   const completion = await groq.chat.completions.create({

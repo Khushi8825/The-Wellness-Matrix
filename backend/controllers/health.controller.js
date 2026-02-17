@@ -26,6 +26,10 @@ const addHealthLog = async (req, res) => {
       meals,
     } = req.body;
 
+    if (!log_date) {
+      return res.status(400).json({ message: "log_date is required" });
+    }
+
     const cleanedData = {
       heart_rate: sanitizeNumber(heart_rate),
       systolic_bp: sanitizeNumber(systolic_bp),
@@ -34,10 +38,6 @@ const addHealthLog = async (req, res) => {
       weight: sanitizeNumber(weight),
       meals: meals || null,
     };
-
-    if (!log_date) {
-      return res.status(400).json({ message: "log_date is required" });
-    }
 
     /* 1️⃣ SAVE / UPDATE DAILY HEALTH LOG */
     const insertQuery = `
@@ -54,8 +54,7 @@ const addHealthLog = async (req, res) => {
         blood_sugar = EXCLUDED.blood_sugar,
         weight = EXCLUDED.weight,
         meals = EXCLUDED.meals,
-        updated_at = CURRENT_TIMESTAMP
-      RETURNING *;
+        updated_at = CURRENT_TIMESTAMP;
     `;
 
     await pool.query(insertQuery, [
@@ -69,7 +68,7 @@ const addHealthLog = async (req, res) => {
       cleanedData.meals,
     ]);
 
-    /* 2️⃣ FETCH LAST 7 DAYS DATA */
+    /* 2️⃣ FETCH LAST 7 DAYS DATA FOR SEVERITY */
     const logsQuery = `
       SELECT heart_rate, systolic_bp, diastolic_bp, blood_sugar, meals
       FROM health_logs
@@ -80,10 +79,24 @@ const addHealthLog = async (req, res) => {
 
     const { rows: logs } = await pool.query(logsQuery, [userId]);
 
-    /* 3️⃣ ANALYZE SEVERITY */
+    /* 3️⃣ FETCH LATEST RECORD (STRICT) */
+    const latestQuery = `
+      SELECT heart_rate, systolic_bp, diastolic_bp, blood_sugar
+      FROM health_logs
+      WHERE user_id = $1
+      ORDER BY updated_at DESC
+      LIMIT 1;
+    `;
+
+    const { rows: latestRows } = await pool.query(latestQuery, [userId]);
+    const latestLog = latestRows[0];
+
+    console.log("LATEST LOG SENT TO AI:", latestLog);
+
+    /* 4️⃣ ANALYZE SEVERITY */
     const severityResult = analyzeSeverity(logs);
 
-    /* 4️⃣ STORE SEVERITY RESULT */
+    /* 5️⃣ STORE SEVERITY RESULT */
     const severityInsertQuery = `
       INSERT INTO health_severity (
         user_id, start_date, end_date, severity, reasons
@@ -97,19 +110,19 @@ const addHealthLog = async (req, res) => {
       severityResult.reasons.join(", "),
     ]);
 
-    /* 5️⃣ SEND RESPONSE */
-    // console.log("🤖 AI Explanation:", aiExplanation);
+    /* 6️⃣ AI EXPLANATION */
     let aiExplanation = null;
 
     try {
       aiExplanation = await generateHealthExplanation(
         severityResult.severity,
         severityResult.reasons,
+        latestLog
       );
     } catch (aiError) {
-      console.error("❌ AI ERROR (non-blocking):", aiError.message);
+      console.error("❌ AI ERROR:", aiError.message);
       aiExplanation =
-        "Your health data has been recorded successfully. Please focus on maintaining healthy daily habits.";
+        "Your health data has been recorded successfully. Please maintain healthy habits.";
     }
 
     return res.status(201).json({
@@ -118,6 +131,7 @@ const addHealthLog = async (req, res) => {
       reasons: severityResult.reasons,
       explanation: aiExplanation,
     });
+
   } catch (error) {
     console.error("❌ Health Log + Severity Error:", error);
 
@@ -126,6 +140,7 @@ const addHealthLog = async (req, res) => {
     });
   }
 };
+
 const getHealthChartData = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -153,4 +168,3 @@ module.exports = {
   addHealthLog,
   getHealthChartData,
 };
-
