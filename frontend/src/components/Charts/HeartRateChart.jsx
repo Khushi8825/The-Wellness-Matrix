@@ -25,6 +25,7 @@ const HeartRateChart = ({ refreshKey }) => {
     })
       .then((res) => res.json())
       .then((result) => {
+        console.log("Chart Data:", result);
         setData(result);
       })
       .catch((err) => console.error("Chart fetch error:", err));
@@ -36,13 +37,19 @@ const HeartRateChart = ({ refreshKey }) => {
         <CartesianGrid strokeDasharray="3 3" />
 
         <XAxis dataKey="log_date" tick={{ fontSize: 12 }} />
-        <YAxis />
+
+        {/* Left Axis → HR & BP */}
+        <YAxis yAxisId="left" />
+
+        {/* Right Axis → Sleep */}
+        <YAxis yAxisId="right" orientation="right" domain={[0, 12]} />
 
         <Tooltip />
         <Legend />
 
         {/* 🔴 Heart Rate */}
         <Line
+          yAxisId="left"
           type="monotone"
           dataKey="heart_rate"
           stroke="#ef4444"
@@ -51,14 +58,26 @@ const HeartRateChart = ({ refreshKey }) => {
           name="Heart Rate (bpm)"
         />
 
-        {/* 🔵 Blood Pressure (Systolic) */}
+        {/* 🔵 Blood Pressure */}
         <Line
+          yAxisId="left"
           type="monotone"
           dataKey="systolic_bp"
           stroke="#3b82f6"
           strokeWidth={2}
           dot={{ r: 3 }}
           name="Blood Pressure (mmHg)"
+        />
+
+        {/* 🟣 Sleep */}
+        <Line
+          yAxisId="right"
+          type="monotone"
+          dataKey="sleep_hours"
+          stroke="#8b5cf6"
+          strokeWidth={2}
+          dot={{ r: 3 }}
+          name="Sleep (hrs)"
         />
       </LineChart>
     </ResponsiveContainer>
