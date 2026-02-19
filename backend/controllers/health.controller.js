@@ -23,8 +23,10 @@ const addHealthLog = async (req, res) => {
       diastolic_bp,
       blood_sugar,
       weight,
+      sleep,
       meals,
     } = req.body;
+    // console.log("Incoming sleep from frontend:", sleep);
 
     if (!log_date) {
       return res.status(400).json({ message: "log_date is required" });
@@ -36,6 +38,7 @@ const addHealthLog = async (req, res) => {
       diastolic_bp: sanitizeNumber(diastolic_bp),
       blood_sugar: sanitizeNumber(blood_sugar),
       weight: sanitizeNumber(weight),
+      sleep_hours: sanitizeNumber(sleep),
       meals: meals || null,
     };
 
@@ -43,9 +46,9 @@ const addHealthLog = async (req, res) => {
     const insertQuery = `
       INSERT INTO health_logs (
         user_id, log_date, heart_rate, systolic_bp, diastolic_bp,
-        blood_sugar, weight, meals
+        blood_sugar, weight, sleep_hours, meals
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8, $9)
       ON CONFLICT (user_id, log_date)
       DO UPDATE SET
         heart_rate = EXCLUDED.heart_rate,
@@ -54,6 +57,7 @@ const addHealthLog = async (req, res) => {
         blood_sugar = EXCLUDED.blood_sugar,
         weight = EXCLUDED.weight,
         meals = EXCLUDED.meals,
+        sleep_hours = EXCLUDED.sleep_hours,
         updated_at = CURRENT_TIMESTAMP;
     `;
 
@@ -65,12 +69,13 @@ const addHealthLog = async (req, res) => {
       cleanedData.diastolic_bp,
       cleanedData.blood_sugar,
       cleanedData.weight,
+      cleanedData.sleep_hours,
       cleanedData.meals,
     ]);
 
     /* 2️⃣ FETCH LAST 7 DAYS DATA FOR SEVERITY */
     const logsQuery = `
-      SELECT heart_rate, systolic_bp, diastolic_bp, blood_sugar, meals
+      SELECT heart_rate, systolic_bp, diastolic_bp, blood_sugar, meals, sleep_hours
       FROM health_logs
       WHERE user_id = $1
         AND log_date >= CURRENT_DATE - INTERVAL '7 days'
@@ -81,7 +86,7 @@ const addHealthLog = async (req, res) => {
 
     /* 3️⃣ FETCH LATEST RECORD (STRICT) */
     const latestQuery = `
-      SELECT heart_rate, systolic_bp, diastolic_bp, blood_sugar
+      SELECT heart_rate, systolic_bp, diastolic_bp, blood_sugar, sleep_hours
       FROM health_logs
       WHERE user_id = $1
       ORDER BY updated_at DESC
@@ -149,7 +154,8 @@ const getHealthChartData = async (req, res) => {
       SELECT 
         log_date,
         heart_rate,
-        systolic_bp
+        systolic_bp,
+        sleep_hours
       FROM health_logs
       WHERE user_id = $1
         AND log_date >= CURRENT_DATE - INTERVAL '7 days'

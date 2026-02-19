@@ -14,6 +14,7 @@ const HealthForm = ({ onSeverityUpdate,onLogSaved }) => {
     bloodSugar: "",
     weight: "",
     meals: "",
+    sleep: "",
   });
 
   const handleSubmit = async (e) => {
@@ -32,6 +33,7 @@ const HealthForm = ({ onSeverityUpdate,onLogSaved }) => {
           systolic_bp: data.systolicBP,
           diastolic_bp: data.diastolicBP,
           blood_sugar: data.bloodSugar,
+          sleep: data.sleep,
           weight: data.weight,
           meals: data.meals,
         }),
