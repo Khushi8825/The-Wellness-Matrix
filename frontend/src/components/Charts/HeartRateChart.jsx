@@ -72,7 +72,7 @@ const HeartRateChart = ({ refreshKey }) => {
         {/* 🟣 Sleep */}
         <Line
           yAxisId="right"
-          type="monotone"
+          type="stepAfter"
           dataKey="sleep_hours"
           stroke="#8b5cf6"
           strokeWidth={2}
