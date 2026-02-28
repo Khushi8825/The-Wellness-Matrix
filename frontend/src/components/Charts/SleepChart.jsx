@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -9,7 +9,7 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const HeartRateChart = ({ refreshKey }) => {
+const SleepChart = ({ refreshKey }) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -22,7 +22,7 @@ const HeartRateChart = ({ refreshKey }) => {
       .then((result) => {
         const formatted = result.reverse().map((item) => ({
           ...item,
-          heart_rate: item.heart_rate ? Number(item.heart_rate) : null,
+          sleep_hours: item.sleep_hours ? Number(item.sleep_hours) : 0,
         }));
 
         setData(formatted);
@@ -31,7 +31,7 @@ const HeartRateChart = ({ refreshKey }) => {
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
+      <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
 
         <XAxis
@@ -40,9 +40,9 @@ const HeartRateChart = ({ refreshKey }) => {
         />
 
         <YAxis
-          domain={[40, 150]}
+          domain={[0, 12]}
           label={{
-            value: "Heart Rate (bpm)",
+            value: "Sleep (hours)",
             angle: -90,
             position: "insideLeft",
           }}
@@ -50,15 +50,10 @@ const HeartRateChart = ({ refreshKey }) => {
 
         <Tooltip />
 
-        <Line
-          type="monotone"
-          dataKey="heart_rate"
-          stroke="#ef4444"
-          strokeWidth={3}
-        />
-      </LineChart>
+        <Bar dataKey="sleep_hours" fill="#8b5cf6" />
+      </BarChart>
     </ResponsiveContainer>
   );
 };
 
-export default HeartRateChart;
+export default SleepChart;

@@ -5,11 +5,12 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  Legend,
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
 
-const HeartRateChart = ({ refreshKey }) => {
+const BloodPressureChart = ({ refreshKey }) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -22,7 +23,8 @@ const HeartRateChart = ({ refreshKey }) => {
       .then((result) => {
         const formatted = result.reverse().map((item) => ({
           ...item,
-          heart_rate: item.heart_rate ? Number(item.heart_rate) : null,
+          systolic_bp: item.systolic_bp ? Number(item.systolic_bp) : null,
+          diastolic_bp: item.diastolic_bp ? Number(item.diastolic_bp) : null,
         }));
 
         setData(formatted);
@@ -33,32 +35,44 @@ const HeartRateChart = ({ refreshKey }) => {
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-
         <XAxis
           dataKey="log_date"
-          label={{ value: "Date", position: "insideBottom", offset: -5 }}
+          label={{
+            value: "Date",
+            position: "insideBottom",
+            offset: -5,
+          }}
         />
 
         <YAxis
-          domain={[40, 150]}
+          domain={[40, 180]}
           label={{
-            value: "Heart Rate (bpm)",
+            value: "Blood Pressure (mmHg)",
             angle: -90,
             position: "insideLeft",
           }}
         />
-
         <Tooltip />
+        <Legend />
 
         <Line
           type="monotone"
-          dataKey="heart_rate"
-          stroke="#ef4444"
+          dataKey="systolic_bp"
+          stroke="#3b82f6"
           strokeWidth={3}
+          name="Systolic (mmHg)"
+        />
+
+        <Line
+          type="monotone"
+          dataKey="diastolic_bp"
+          stroke="#1e40af"
+          strokeWidth={3}
+          name="Diastolic (mmHg)"
         />
       </LineChart>
     </ResponsiveContainer>
   );
 };
 
-export default HeartRateChart;
+export default BloodPressureChart;

@@ -155,6 +155,7 @@ const getHealthChartData = async (req, res) => {
         log_date,
         heart_rate,
         systolic_bp,
+        diastolic_bp,
         sleep_hours
       FROM health_logs
       WHERE user_id = $1
