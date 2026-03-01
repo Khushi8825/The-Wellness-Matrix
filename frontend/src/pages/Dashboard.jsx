@@ -9,7 +9,25 @@ import { SeverityCard } from "../components/index";
 const Dashboard = () => {
   const [severityData, setSeverityData] = useState(null);
   const [chartRefreshKey, setChartRefreshKey] = useState(0);
+  const [allLogs, setAllLogs] = useState([]);
+  const [selectedLog, setSelectedLog] = useState(null);
 
+  useEffect(() => {
+    fetch("http://localhost:5000/api/health/chart", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setAllLogs(data));
+  }, [chartRefreshKey]);
+  const handleDateSelect = (date) => {
+    const found = allLogs.find(
+      (log) => new Date(log.log_date).toDateString() === date.toDateString(),
+    );
+
+    setSelectedLog(found || null);
+  };
   useEffect(() => {
     fetch("/api/health/severity", {
       headers: {
@@ -29,7 +47,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center">
       <div className="w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
-
         {/* HEADER */}
         <div className="mb-6">
           <h2 className="text-2xl sm:text-3xl font-bold text-red-600">
@@ -42,7 +59,6 @@ const Dashboard = () => {
 
         {/* ================= CHARTS GRID ================= */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
           {/* Blood Pressure */}
           <div className="bg-white rounded-2xl shadow p-6">
             <h3 className="text-lg font-semibold mb-4">
@@ -53,9 +69,7 @@ const Dashboard = () => {
 
           {/* Heart Rate */}
           <div className="bg-white rounded-2xl shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">
-              Heart Rate (bpm)
-            </h3>
+            <h3 className="text-lg font-semibold mb-4">Heart Rate (bpm)</h3>
             <HeartRateChart refreshKey={chartRefreshKey} />
           </div>
 
@@ -68,16 +82,18 @@ const Dashboard = () => {
           </div>
 
           {/* Empty reserved space */}
-          <HealthOverview/>
+          <HealthOverview
+            logs={allLogs}
+            selectedLog={selectedLog}
+            onDateSelect={handleDateSelect}
+          />
           <div></div>
         </div>
         {/* ================= END GRID ================= */}
 
-
         {/* ================= SEVERITY + AI ================= */}
         {severityData && (
           <div className="mt-10">
-
             <SeverityCard
               severity={severityData.severity}
               reasons={severityData.reasons}
@@ -101,11 +117,9 @@ const Dashboard = () => {
                 ⚠️ We recommend consulting a healthcare professional.
               </p>
             )}
-
           </div>
         )}
         {/* ================= END SEVERITY ================= */}
-
 
         {/* ================= HEALTH FORM ================= */}
         <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-6 mt-10">
@@ -118,7 +132,6 @@ const Dashboard = () => {
             onLogSaved={() => setChartRefreshKey((prev) => prev + 1)}
           />
         </div>
-
       </div>
     </div>
   );

@@ -122,7 +122,7 @@ const addHealthLog = async (req, res) => {
       aiExplanation = await generateHealthExplanation(
         severityResult.severity,
         severityResult.reasons,
-        latestLog
+        latestLog,
       );
     } catch (aiError) {
       console.error("❌ AI ERROR:", aiError.message);
@@ -136,7 +136,6 @@ const addHealthLog = async (req, res) => {
       reasons: severityResult.reasons,
       explanation: aiExplanation,
     });
-
   } catch (error) {
     console.error("❌ Health Log + Severity Error:", error);
 
@@ -151,17 +150,19 @@ const getHealthChartData = async (req, res) => {
     const userId = req.user.id;
 
     const query = `
-      SELECT 
-        log_date,
-        heart_rate,
-        systolic_bp,
-        diastolic_bp,
-        sleep_hours
-      FROM health_logs
-      WHERE user_id = $1
-        AND log_date >= CURRENT_DATE - INTERVAL '7 days'
-      ORDER BY log_date ASC;
-    `;
+                    SELECT 
+                      log_date,
+                      heart_rate,
+                      systolic_bp,
+                      diastolic_bp,
+                      blood_sugar,
+                      weight,
+                      sleep_hours,
+                      meals
+                    FROM health_logs
+                    WHERE user_id = $1
+                    ORDER BY log_date ASC;
+                  `;
 
     const { rows } = await pool.query(query, [userId]);
 

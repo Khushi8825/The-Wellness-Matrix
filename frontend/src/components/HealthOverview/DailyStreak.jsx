@@ -1,5 +1,28 @@
-const DailyStreak = () => {
-  const streak = 5;
+const calculateStreak = (logs = []) => {
+  const sorted = logs
+    .map(log => new Date(log.log_date).toDateString())
+    .sort((a, b) => new Date(b) - new Date(a));
+
+  let streak = 0;
+  let current = new Date();
+
+  for (let i = 0; i < sorted.length; i++) {
+    const logDate = new Date(sorted[i]);
+    if (
+      logDate.toDateString() === current.toDateString()
+    ) {
+      streak++;
+      current.setDate(current.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+};
+
+const DailyStreak = ({ logs = [] }) => {
+  const streak = calculateStreak(logs);
 
   return (
     <div className="flex items-center justify-center">

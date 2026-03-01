@@ -22,7 +22,7 @@ const HealthStatsCards = () => {
       {stats.map((item, index) => (
         <div
           key={index}
-          className={`bg-gradient-to-r ${item.gradient} text-white rounded-xl p-4 shadow-md`}
+          className="bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-xl shadow-md transition transform hover:-translate-y-2 hover:shadow-xl duration-300"
         >
           <p className="text-sm opacity-80">{item.title}</p>
           <p className="text-xl font-bold mt-1">{item.value}</p>

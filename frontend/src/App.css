@@ -30,3 +30,8 @@
 .custom-calendar .react-calendar__month-view__days {
   row-gap: 2px;
 }
+.log-day {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: white !important;
+  border-radius: 6px;
+}
