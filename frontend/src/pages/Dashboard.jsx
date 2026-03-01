@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import BloodPressureChart from "../components/Charts/BloodPressureChart";
+import BloodPressureChart from "../components/Charts/bloodPressureChart";
 import HeartRateChart from "../components/Charts/HeartRateChart";
 import SleepChart from "../components/Charts/SleepChart";
 import HealthForm from "../components/HealthForm/HealthForm";
