@@ -3,6 +3,7 @@ import BloodPressureChart from "../components/Charts/BloodPressureChart";
 import HeartRateChart from "../components/Charts/HeartRateChart";
 import SleepChart from "../components/Charts/SleepChart";
 import HealthForm from "../components/HealthForm/HealthForm";
+import HealthOverview from "../components/HealthOverview/HealthOverview";
 import { SeverityCard } from "../components/index";
 
 const Dashboard = () => {
@@ -67,6 +68,7 @@ const Dashboard = () => {
           </div>
 
           {/* Empty reserved space */}
+          <HealthOverview/>
           <div></div>
         </div>
         {/* ================= END GRID ================= */}

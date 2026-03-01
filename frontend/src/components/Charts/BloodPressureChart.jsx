@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  LineChart,
+  AreaChart,
+  Area,
   Line,
   XAxis,
   YAxis,
@@ -26,51 +27,80 @@ const BloodPressureChart = ({ refreshKey }) => {
           systolic_bp: item.systolic_bp ? Number(item.systolic_bp) : null,
           diastolic_bp: item.diastolic_bp ? Number(item.diastolic_bp) : null,
         }));
-
         setData(formatted);
       });
   }, [refreshKey]);
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis
-          dataKey="log_date"
-          label={{
-            value: "Date",
-            position: "insideBottom",
-            offset: -5,
-          }}
-        />
+      <AreaChart data={data}>
+        {/* 🔥 STRONG VISIBLE GRADIENTS */}
+        <defs>
+          {/* 💙 Soft Systolic Gradient */}
+          <linearGradient id="systolicGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.35} />
+            <stop offset="40%" stopColor="#3b82f6" stopOpacity={0.18} />
+            <stop offset="75%" stopColor="#3b82f6" stopOpacity={0.08} />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+          </linearGradient>
 
-        <YAxis
-          domain={[40, 180]}
-          label={{
-            value: "Blood Pressure (mmHg)",
-            angle: -90,
-            position: "insideLeft",
-          }}
-        />
+          {/* 💙 Softer Dark Blue for Diastolic */}
+          <linearGradient id="diastolicGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#1e40af" stopOpacity={0.28} />
+            <stop offset="40%" stopColor="#1e40af" stopOpacity={0.15} />
+            <stop offset="75%" stopColor="#1e40af" stopOpacity={0.07} />
+            <stop offset="100%" stopColor="#1e40af" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+
+        {/* Softer Grid */}
+        <CartesianGrid stroke="#e5e7eb" vertical={false} />
+
+        <XAxis dataKey="log_date" tick={{ fontSize: 12 }} />
+
+        <YAxis domain={['dataMin - 10', 'dataMax + 10']} />
+
         <Tooltip />
         <Legend />
+
+        {/* 🔵 Systolic Area FIRST */}
+        <Area
+          type="natural"
+          dataKey="systolic_bp"
+          stroke="none"
+          fill="url(#systolicGradient)"
+          fillOpacity={1}
+          baseValue="dataMin"
+        />
 
         <Line
           type="monotone"
           dataKey="systolic_bp"
-          stroke="#3b82f6"
+          stroke="#2563eb"
           strokeWidth={3}
+          dot={{ r: 5 }}
           name="Systolic (mmHg)"
+        />
+
+        {/* 🔷 Diastolic Area */}
+        <Area
+          type="natural"
+          dataKey="diastolic_bp"
+          stroke="none"
+          fill="url(#diastolicGradient)"
+          fillOpacity={1}
+          baseValue="dataMin"
         />
 
         <Line
           type="monotone"
           dataKey="diastolic_bp"
-          stroke="#1e40af"
+          stroke="#1e3a8a"
           strokeWidth={3}
+          dot={{ r: 5 }}
           name="Diastolic (mmHg)"
         />
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
   );
 };

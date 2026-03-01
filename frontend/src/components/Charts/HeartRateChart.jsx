@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -31,7 +31,7 @@ const HeartRateChart = ({ refreshKey }) => {
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
+      <AreaChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
 
         <XAxis
@@ -50,13 +50,16 @@ const HeartRateChart = ({ refreshKey }) => {
 
         <Tooltip />
 
-        <Line
-          type="monotone"
+        <Area
+          type="natural"
           dataKey="heart_rate"
           stroke="#ef4444"
+          fill="rgba(239,68,68,0.25)"
           strokeWidth={3}
+          dot={{ r: 4 }}
+          activeDot={{ r: 6 }}
         />
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
   );
 };
