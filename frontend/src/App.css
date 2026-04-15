@@ -35,3 +35,23 @@
   color: white !important;
   border-radius: 6px;
 }
+/* Logged days */
+.log-day {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: white !important;
+  border-radius: 6px;
+}
+
+/* Today only */
+.today {
+  border: 2px solid #3b82f6;
+  border-radius: 6px;
+}
+
+/* Today + Logged */
+.today-logged {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white !important;
+  border: 2px solid #3b82f6;
+  border-radius: 6px;
+}

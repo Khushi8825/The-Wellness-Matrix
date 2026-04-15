@@ -1,21 +1,25 @@
 const calculateStreak = (logs = []) => {
-  const sorted = logs
-    .map(log => new Date(log.log_date).toDateString())
-    .sort((a, b) => new Date(b) - new Date(a));
+  if (!logs.length) return 0;
+
+  // Convert logs to Set for O(1) lookup
+  const logSet = new Set(
+    logs.map(log =>
+      new Date(log.log_date).toDateString()
+    )
+  );
 
   let streak = 0;
   let current = new Date();
 
-  for (let i = 0; i < sorted.length; i++) {
-    const logDate = new Date(sorted[i]);
-    if (
-      logDate.toDateString() === current.toDateString()
-    ) {
-      streak++;
-      current.setDate(current.getDate() - 1);
-    } else {
-      break;
-    }
+  // 🔥 IMPORTANT: check TODAY first
+  if (!logSet.has(current.toDateString())) {
+    return 0; // break immediately if today not logged
+  }
+
+  // Loop backward day by day
+  while (logSet.has(current.toDateString())) {
+    streak++;
+    current.setDate(current.getDate() - 1);
   }
 
   return streak;
