@@ -30,7 +30,7 @@ function Login() {
 
       localStorage.setItem("token", data.token); // ✅ save JWT
       navigate("/dashboard");                    // ✅ redirect
-    } catch (err) {
+    } catch {
       setError("Server error. Please try again later.");
     }
   };
@@ -73,6 +73,7 @@ function Login() {
 
         {/* Login Form */}
         <form className="space-y-5" onSubmit={handleSubmit}>
+          {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
           {/* Username */}
           <div>
             <label className="block text-sm font-medium text-gray-800 mb-1">

@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Clean Prisma names mapped directly to the existing PostgreSQL users table.
+model User {
+  id             Int              @id @default(autoincrement())
+  firstName      String?          @map("first_name") @db.VarChar(50)
+  lastName       String?          @map("last_name") @db.VarChar(50)
+  email          String           @unique @db.VarChar(100)
+  password       String
+  createdAt      DateTime?        @default(now()) @map("created_at") @db.Timestamp(6)
+  username       String           @unique @db.VarChar(50)
+  profileImage   String?          @map("profile_image") @db.Text
+  phone          String?          @db.VarChar(30)
+  dateOfBirth    DateTime?        @map("date_of_birth") @db.Date
+  pastHealthIssues String?        @map("past_health_issues") @db.Text
+  healthLogs     HealthLog[]
+  healthSeverity HealthSeverity[]
+
+  @@map("users")
+}
+
+model HealthLog {
+  id          BigInt    @id @default(autoincrement())
+  userId      Int       @map("user_id")
+  logDate     DateTime  @map("log_date") @db.Date
+  heartRate   Int?      @map("heart_rate")
+  systolicBp  Int?      @map("systolic_bp")
+  diastolicBp Int?      @map("diastolic_bp")
+  bloodSugar  Int?      @map("blood_sugar")
+  weight      Decimal?  @db.Decimal(5, 2)
+  meals       String?
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
+  sleepHours  Int?      @map("sleep_hours")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_health_user")
+
+  @@unique([userId, logDate], map: "unique_user_date")
+  @@map("health_logs")
+}
+
+model HealthSeverity {
+  id        BigInt    @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  startDate DateTime  @map("start_date") @db.Date
+  endDate   DateTime  @map("end_date") @db.Date
+  severity  String?
+  reasons   String?
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_severity_user")
+
+  @@map("health_severity")
+}

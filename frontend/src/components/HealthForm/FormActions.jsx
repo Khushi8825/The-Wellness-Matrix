@@ -1,11 +1,12 @@
-const FormActions = () => {
+const FormActions = ({ isSubmitting }) => {
   return (
     <div className="pt-4">
       <button
         type="submit"
-        className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition"
+        disabled={isSubmitting}
+        className="w-full rounded-xl bg-indigo-600 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Save Health Record
+        {isSubmitting ? "Saving health record…" : "Save Health Record"}
       </button>
 
       <p className="text-xs text-gray-500 text-center mt-3">

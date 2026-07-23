@@ -38,18 +38,18 @@ const BloodPressureChart = ({ refreshKey }) => {
         <defs>
           {/* 💙 Soft Systolic Gradient */}
           <linearGradient id="systolicGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.35} />
-            <stop offset="40%" stopColor="#3b82f6" stopOpacity={0.18} />
-            <stop offset="75%" stopColor="#3b82f6" stopOpacity={0.08} />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+            <stop offset="0%" stopColor="#dc2626" stopOpacity={0.35} />
+            <stop offset="40%" stopColor="#dc2626" stopOpacity={0.18} />
+            <stop offset="75%" stopColor="#dc2626" stopOpacity={0.08} />
+            <stop offset="100%" stopColor="#dc2626" stopOpacity={0} />
           </linearGradient>
 
           {/* 💙 Softer Dark Blue for Diastolic */}
           <linearGradient id="diastolicGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#1e40af" stopOpacity={0.28} />
-            <stop offset="40%" stopColor="#1e40af" stopOpacity={0.15} />
-            <stop offset="75%" stopColor="#1e40af" stopOpacity={0.07} />
-            <stop offset="100%" stopColor="#1e40af" stopOpacity={0} />
+            <stop offset="0%" stopColor="#991b1b" stopOpacity={0.28} />
+            <stop offset="40%" stopColor="#991b1b" stopOpacity={0.15} />
+            <stop offset="75%" stopColor="#991b1b" stopOpacity={0.07} />
+            <stop offset="100%" stopColor="#991b1b" stopOpacity={0} />
           </linearGradient>
         </defs>
 
@@ -76,7 +76,7 @@ const BloodPressureChart = ({ refreshKey }) => {
         <Line
           type="monotone"
           dataKey="systolic_bp"
-          stroke="#2563eb"
+          stroke="#dc2626"
           strokeWidth={3}
           dot={{ r: 5 }}
           name="Systolic (mmHg)"
@@ -95,7 +95,7 @@ const BloodPressureChart = ({ refreshKey }) => {
         <Line
           type="monotone"
           dataKey="diastolic_bp"
-          stroke="#1e3a8a"
+          stroke="#991b1b"
           strokeWidth={3}
           dot={{ r: 5 }}
           name="Diastolic (mmHg)"

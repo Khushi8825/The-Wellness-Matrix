@@ -50,7 +50,7 @@ const SleepChart = ({ refreshKey }) => {
 
         <Tooltip />
 
-        <Bar dataKey="sleep_hours" fill="#8b5cf6" />
+        <Bar dataKey="sleep_hours" fill="#dc2626" radius={[6, 6, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

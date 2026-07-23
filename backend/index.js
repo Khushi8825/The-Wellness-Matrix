@@ -16,8 +16,10 @@ const severityRoutes = require("./routes/severity.routes");
 app.use("/api/health", severityRoutes);
 
 const healthRoutes = require("./routes/health.routes");
+const profileRoutes = require("./routes/profile.routes");
 
 app.use("/api/health", healthRoutes);
+app.use("/api/profile", profileRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

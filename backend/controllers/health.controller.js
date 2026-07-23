@@ -1,178 +1,104 @@
-const {
-  generateHealthExplanation,
-} = require("../services/ai/healthExplanation.service");
-
-const pool = require("../config/db");
+const { generateHealthExplanation } = require("../services/ai/healthExplanation.service");
+const prisma = require("../config/db");
 const analyzeSeverity = require("../services/severity");
 
-/**
- * POST /api/health/log
- * Save daily health log + auto calculate severity
- */
+const startOfUtcDay = (date = new Date()) => {
+  const value = new Date(date);
+  value.setUTCHours(0, 0, 0, 0);
+  return value;
+};
+
+const toApiLog = (log) => ({
+  log_date: log.logDate,
+  heart_rate: log.heartRate,
+  systolic_bp: log.systolicBp,
+  diastolic_bp: log.diastolicBp,
+  blood_sugar: log.bloodSugar,
+  weight: log.weight,
+  sleep_hours: log.sleepHours,
+  meals: log.meals,
+});
+
 const addHealthLog = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = Number(req.user.id);
+    const { log_date, heart_rate, systolic_bp, diastolic_bp, blood_sugar, weight, sleep, meals } = req.body;
+    if (!log_date) return res.status(400).json({ message: "log_date is required" });
 
-    const sanitizeNumber = (value) =>
-      value === "" || value === undefined ? null : Number(value);
-
-    const {
-      log_date,
-      heart_rate,
-      systolic_bp,
-      diastolic_bp,
-      blood_sugar,
-      weight,
-      sleep,
-      meals,
-    } = req.body;
-    // console.log("Incoming sleep from frontend:", sleep);
-
-    if (!log_date) {
-      return res.status(400).json({ message: "log_date is required" });
-    }
-
-    const cleanedData = {
-      heart_rate: sanitizeNumber(heart_rate),
-      systolic_bp: sanitizeNumber(systolic_bp),
-      diastolic_bp: sanitizeNumber(diastolic_bp),
-      blood_sugar: sanitizeNumber(blood_sugar),
-      weight: sanitizeNumber(weight),
-      sleep_hours: sanitizeNumber(sleep),
-      meals: meals || null,
+    const logDate = new Date(`${log_date}T00:00:00.000Z`);
+    if (Number.isNaN(logDate.getTime())) return res.status(400).json({ message: "log_date is invalid" });
+    const optionalNumber = (value) => (value === "" || value === undefined ? null : Number(value));
+    const data = {
+      heartRate: optionalNumber(heart_rate), systolicBp: optionalNumber(systolic_bp),
+      diastolicBp: optionalNumber(diastolic_bp), bloodSugar: optionalNumber(blood_sugar),
+      weight: optionalNumber(weight), sleepHours: optionalNumber(sleep), meals: meals || null,
     };
 
-    /* 1️⃣ SAVE / UPDATE DAILY HEALTH LOG */
-    const insertQuery = `
-      INSERT INTO health_logs (
-        user_id, log_date, heart_rate, systolic_bp, diastolic_bp,
-        blood_sugar, weight, sleep_hours, meals
-      )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8, $9)
-      ON CONFLICT (user_id, log_date)
-      DO UPDATE SET
-        heart_rate = EXCLUDED.heart_rate,
-        systolic_bp = EXCLUDED.systolic_bp,
-        diastolic_bp = EXCLUDED.diastolic_bp,
-        blood_sugar = EXCLUDED.blood_sugar,
-        weight = EXCLUDED.weight,
-        meals = EXCLUDED.meals,
-        sleep_hours = EXCLUDED.sleep_hours,
-        updated_at = CURRENT_TIMESTAMP;
-    `;
+    await prisma.healthLog.upsert({
+      where: { userId_logDate: { userId, logDate } },
+      create: { userId, logDate, ...data },
+      update: { ...data, updatedAt: new Date() },
+    });
 
-    await pool.query(insertQuery, [
-      userId,
-      log_date,
-      cleanedData.heart_rate,
-      cleanedData.systolic_bp,
-      cleanedData.diastolic_bp,
-      cleanedData.blood_sugar,
-      cleanedData.weight,
-      cleanedData.sleep_hours,
-      cleanedData.meals,
-    ]);
+    const sevenDaysAgo = startOfUtcDay();
+    sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
+    const recentLogs = await prisma.healthLog.findMany({
+      where: { userId, logDate: { gte: sevenDaysAgo } }, orderBy: { logDate: "asc" },
+    });
+    const severityResult = analyzeSeverity(recentLogs.map(toApiLog));
+    const thirtyDaysAgo = startOfUtcDay();
+    thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 29);
+    const analysisLogs = await prisma.healthLog.findMany({
+      where: { userId, logDate: { gte: thirtyDaysAgo } }, orderBy: { logDate: "asc" },
+    });
+    const today = startOfUtcDay();
 
-    /* 2️⃣ FETCH LAST 7 DAYS DATA FOR SEVERITY */
-    const logsQuery = `
-      SELECT heart_rate, systolic_bp, diastolic_bp, blood_sugar, meals, sleep_hours
-      FROM health_logs
-      WHERE user_id = $1
-        AND log_date >= CURRENT_DATE - INTERVAL '7 days'
-      ORDER BY log_date ASC;
-    `;
+    await prisma.healthSeverity.create({
+      data: { userId, startDate: sevenDaysAgo, endDate: today, severity: severityResult.severity, reasons: severityResult.reasons.join(", ") },
+    });
 
-    const { rows: logs } = await pool.query(logsQuery, [userId]);
-
-    /* 3️⃣ FETCH LATEST RECORD (STRICT) */
-    const latestQuery = `
-      SELECT heart_rate, systolic_bp, diastolic_bp, blood_sugar, sleep_hours
-      FROM health_logs
-      WHERE user_id = $1
-      ORDER BY updated_at DESC
-      LIMIT 1;
-    `;
-
-    const { rows: latestRows } = await pool.query(latestQuery, [userId]);
-    const latestLog = latestRows[0];
-
-    console.log("LATEST LOG SENT TO AI:", latestLog);
-
-    /* 4️⃣ ANALYZE SEVERITY */
-    const severityResult = analyzeSeverity(logs);
-
-    /* 5️⃣ STORE SEVERITY RESULT */
-    const severityInsertQuery = `
-      INSERT INTO health_severity (
-        user_id, start_date, end_date, severity, reasons
-      )
-      VALUES ($1, CURRENT_DATE - INTERVAL '7 days', CURRENT_DATE, $2, $3);
-    `;
-
-    await pool.query(severityInsertQuery, [
-      userId,
-      severityResult.severity,
-      severityResult.reasons.join(", "),
-    ]);
-
-    /* 6️⃣ AI EXPLANATION */
-    let aiExplanation = null;
-
+    let aiExplanation;
     try {
-      aiExplanation = await generateHealthExplanation(
-        severityResult.severity,
-        severityResult.reasons,
-        latestLog,
-      );
+      aiExplanation = await generateHealthExplanation(severityResult.severity, severityResult.reasons, analysisLogs.map(toApiLog));
     } catch (aiError) {
-      console.error("❌ AI ERROR:", aiError.message);
-      aiExplanation =
-        "Your health data has been recorded successfully. Please maintain healthy habits.";
+      console.error("AI explanation error:", aiError.message);
+      aiExplanation = "Your health data has been recorded successfully. Please maintain healthy habits.";
     }
 
     return res.status(201).json({
-      message: "Health log saved & severity updated",
-      severity: severityResult.severity,
-      reasons: severityResult.reasons,
-      explanation: aiExplanation,
+      message: "Health log saved & severity updated", severity: severityResult.severity,
+      reasons: severityResult.reasons, explanation: aiExplanation,
     });
   } catch (error) {
-    console.error("❌ Health Log + Severity Error:", error);
-
-    return res.status(500).json({
-      message: "Failed to save health log",
-    });
+    console.error("Health log error:", error);
+    return res.status(500).json({ message: "Failed to save health log" });
   }
 };
 
 const getHealthChartData = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    const query = `
-                    SELECT 
-                      log_date,
-                      heart_rate,
-                      systolic_bp,
-                      diastolic_bp,
-                      blood_sugar,
-                      weight,
-                      sleep_hours,
-                      meals
-                    FROM health_logs
-                    WHERE user_id = $1
-                    ORDER BY log_date ASC;
-                  `;
-
-    const { rows } = await pool.query(query, [userId]);
-
-    return res.json(rows);
+    const startDate = startOfUtcDay();
+    startDate.setUTCDate(startDate.getUTCDate() - 29);
+    const logs = await prisma.healthLog.findMany({
+      where: { userId: Number(req.user.id), logDate: { gte: startDate } }, orderBy: { logDate: "asc" },
+    });
+    return res.json(logs.map(toApiLog));
   } catch (error) {
-    console.error("❌ Chart Data Error:", error);
+    console.error("Chart data error:", error);
     return res.status(500).json({ message: "Failed to fetch chart data" });
   }
 };
-module.exports = {
-  addHealthLog,
-  getHealthChartData,
+
+const getHealthRecords = async (req, res) => {
+  try {
+    const logs = await prisma.healthLog.findMany({
+      where: { userId: Number(req.user.id) }, orderBy: { logDate: "desc" },
+    });
+    return res.json(logs.map(toApiLog));
+  } catch (error) {
+    console.error("Health records error:", error);
+    return res.status(500).json({ message: "Failed to fetch health records" });
+  }
 };
+
+module.exports = { addHealthLog, getHealthChartData, getHealthRecords };

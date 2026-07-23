@@ -1,140 +1,74 @@
-import { useState, useEffect } from "react";
-import BloodPressureChart from "../components/Charts/bloodPressureChart";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import BloodPressureChart from "../components/Charts/BloodPressureChart";
 import HeartRateChart from "../components/Charts/HeartRateChart";
 import SleepChart from "../components/Charts/SleepChart";
-import HealthForm from "../components/HealthForm/HealthForm";
 import HealthOverview from "../components/HealthOverview/HealthOverview";
-import { SeverityCard } from "../components/index";
+import { AiInsightCard, DashboardHeader, HealthRecords, SeverityCard } from "../components";
 
 const Dashboard = () => {
   const [severityData, setSeverityData] = useState(null);
-  const [chartRefreshKey, setChartRefreshKey] = useState(0);
   const [allLogs, setAllLogs] = useState([]);
+  const [records, setRecords] = useState([]);
   const [selectedLog, setSelectedLog] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [analysis] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("wellness-ai-analysis")) || null; } catch { return null; }
+  });
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/health/chart", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setAllLogs(data));
-  }, [chartRefreshKey]);
-  const handleDateSelect = (date) => {
-    const found = allLogs.find(
-      (log) => new Date(log.log_date).toDateString() === date.toDateString(),
-    );
-
-    setSelectedLog(found || null);
-  };
-  useEffect(() => {
-    fetch("/api/health/severity", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.severity) setSeverityData(data);
-      });
+    const headers = { Authorization: `Bearer ${localStorage.getItem("token")}` };
+    const loadDashboard = async () => {
+      try {
+        const [logsResponse, recordsResponse, severityResponse] = await Promise.all([
+          fetch("http://localhost:5000/api/health/chart", { headers }),
+          fetch("http://localhost:5000/api/health/records", { headers }),
+          fetch("http://localhost:5000/api/health/severity", { headers }),
+        ]);
+        if (!logsResponse.ok || !recordsResponse.ok) throw new Error("Health records request failed");
+        const logs = await logsResponse.json();
+        const allRecords = await recordsResponse.json();
+        setAllLogs(logs);
+        setRecords(allRecords);
+        if (severityResponse.ok) {
+          const severity = await severityResponse.json();
+          if (severity.severity) setSeverityData(severity);
+        }
+      } catch (error) {
+        console.error("Dashboard data error:", error);
+        setLoadError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadDashboard();
   }, []);
 
-  const needsDoctor =
-    severityData?.severity === "CRITICAL" ||
-    severityData?.severity === "WARNING";
+  const handleDateSelect = (date) => setSelectedLog(allLogs.find((log) => new Date(log.log_date).toDateString() === date.toDateString()) || null);
+  const needsDoctor = ["CRITICAL", "WARNING"].includes(severityData?.severity);
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex justify-center">
-      <div className="w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
-        {/* HEADER */}
-        <div className="mb-6">
-          <h2 className="text-2xl sm:text-3xl font-bold text-red-600">
-            Your Health Dashboard
-          </h2>
-          <p className="text-gray-600 mt-1 text-sm sm:text-base">
-            Track, understand, and improve your wellness
-          </p>
-        </div>
+  return <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#fee2e2,_transparent_35%),linear-gradient(180deg,#fffafa_0%,#fff1f2_100%)] px-4 py-5 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl">
+      <DashboardHeader />
+      <header className="mb-7 flex flex-col gap-4 rounded-2xl border border-red-100 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold uppercase tracking-[0.16em] text-red-700">Personal wellness overview</p><h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Your health, clearly tracked.</h2><p className="mt-2 text-slate-600">Your last 30 days of trends, in one private place.</p></div><Link to="/update-vitals" className="inline-flex items-center justify-center rounded-xl bg-red-700 px-5 py-3 font-semibold text-white shadow-lg shadow-red-200 transition hover:-translate-y-0.5 hover:bg-red-800">Update Vitals</Link></header>
 
-        {/* ================= CHARTS GRID ================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Blood Pressure */}
-          <div className="bg-white rounded-2xl shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">
-              Blood Pressure (mmHg)
-            </h3>
-            <BloodPressureChart refreshKey={chartRefreshKey} />
-          </div>
+      <section className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
+        <ChartCard title="Blood Pressure (mmHg)"><BloodPressureChart /></ChartCard>
+        <ChartCard title="Heart Rate (bpm)"><HeartRateChart /></ChartCard>
+        <ChartCard title="Sleep Duration (hours)"><SleepChart /></ChartCard>
+      </section>
 
-          {/* Heart Rate */}
-          <div className="bg-white rounded-2xl shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">Heart Rate (bpm)</h3>
-            <HeartRateChart refreshKey={chartRefreshKey} />
-          </div>
+      <section className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm sm:p-6"><h2 className="text-xl font-bold text-slate-900">Health overview</h2><div className="mt-4"><HealthOverview logs={allLogs} selectedLog={selectedLog} onDateSelect={handleDateSelect} /></div></div>
+        <div className="space-y-5">{severityData && <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm"><SeverityCard severity={severityData.severity} reasons={severityData.reasons} />{needsDoctor && <p className="mt-3 text-sm font-medium text-red-700">We recommend consulting a healthcare professional.</p>}</div>}<AiInsightCard analysis={analysis} loading={false} error={null} /></div>
+      </section>
 
-          {/* Sleep */}
-          <div className="bg-white rounded-2xl shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">
-              Sleep Duration (hours)
-            </h3>
-            <SleepChart refreshKey={chartRefreshKey} />
-          </div>
-
-          {/* Empty reserved space */}
-          <HealthOverview
-            logs={allLogs}
-            selectedLog={selectedLog}
-            onDateSelect={handleDateSelect}
-          />
-          <div></div>
-        </div>
-        {/* ================= END GRID ================= */}
-
-        {/* ================= SEVERITY + AI ================= */}
-        {severityData && (
-          <div className="mt-10">
-            <SeverityCard
-              severity={severityData.severity}
-              reasons={severityData.reasons}
-            />
-
-            {/* AI Explanation */}
-            {severityData.explanation && (
-              <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-5 shadow-sm">
-                <h4 className="text-sm font-semibold text-blue-700 mb-2">
-                  🤖 AI Health Insight
-                </h4>
-                <p className="text-sm text-blue-800 leading-relaxed">
-                  {severityData.explanation}
-                </p>
-              </div>
-            )}
-
-            {/* Doctor Warning */}
-            {needsDoctor && (
-              <p className="mt-3 text-sm text-red-600 font-medium">
-                ⚠️ We recommend consulting a healthcare professional.
-              </p>
-            )}
-          </div>
-        )}
-        {/* ================= END SEVERITY ================= */}
-
-        {/* ================= HEALTH FORM ================= */}
-        <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-6 mt-10">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Add Daily Health Record
-          </h3>
-
-          <HealthForm
-            onSeverityUpdate={setSeverityData}
-            onLogSaved={() => setChartRefreshKey((prev) => prev + 1)}
-          />
-        </div>
-      </div>
+      <section className="mt-8 rounded-2xl border border-red-100 bg-white p-5 shadow-sm sm:p-6"><div className="mb-5 flex items-baseline justify-between gap-4"><div><h2 className="text-xl font-bold text-slate-900">Your health records</h2><p className="mt-1 text-sm text-slate-600">Newest first · your complete record history</p></div><span className="text-xs font-medium text-slate-500">{records.length} record{records.length === 1 ? "" : "s"}</span></div><HealthRecords logs={records} loading={isLoading} error={loadError} /></section>
     </div>
-  );
+  </main>;
 };
+
+const ChartCard = ({ title, children }) => <article className="min-w-0 rounded-2xl border border-red-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-6"><h2 className="mb-4 text-base font-bold text-slate-800">{title}</h2>{children}</article>;
 
 export default Dashboard;
