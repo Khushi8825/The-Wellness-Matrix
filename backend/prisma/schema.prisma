@@ -16,10 +16,6 @@ model User {
   password       String
   createdAt      DateTime?        @default(now()) @map("created_at") @db.Timestamp(6)
   username       String           @unique @db.VarChar(50)
-  profileImage   String?          @map("profile_image") @db.Text
-  phone          String?          @db.VarChar(30)
-  dateOfBirth    DateTime?        @map("date_of_birth") @db.Date
-  pastHealthIssues String?        @map("past_health_issues") @db.Text
   healthLogs     HealthLog[]
   healthSeverity HealthSeverity[]
 

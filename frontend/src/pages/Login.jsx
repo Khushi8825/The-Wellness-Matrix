@@ -29,6 +29,7 @@ function Login() {
       }
 
       localStorage.setItem("token", data.token); // ✅ save JWT
+      localStorage.setItem("email", formData.email);
       navigate("/dashboard");                    // ✅ redirect
     } catch {
       setError("Server error. Please try again later.");
