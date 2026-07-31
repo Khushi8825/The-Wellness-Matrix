@@ -16,6 +16,7 @@ model User {
   password       String
   createdAt      DateTime?        @default(now()) @map("created_at") @db.Timestamp(6)
   username       String           @unique @db.VarChar(50)
+  profileImage   String?          @map("profile_image") @db.VarChar(255)
   healthLogs     HealthLog[]
   healthSeverity HealthSeverity[]
 
