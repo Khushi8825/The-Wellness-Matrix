@@ -26,6 +26,9 @@ app.use("/api/health", healthRoutes);
 const userRoutes = require("./routes/user.routes");
 app.use("/api/users", userRoutes);
 
+const prescriptionRoutes = require("./routes/prescription.routes");
+app.use("/api/prescription", prescriptionRoutes);
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
