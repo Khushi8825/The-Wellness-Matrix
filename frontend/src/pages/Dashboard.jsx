@@ -51,7 +51,7 @@ const Dashboard = () => {
   return <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#fee2e2,_transparent_35%),linear-gradient(180deg,#fffafa_0%,#fff1f2_100%)] px-4 py-5 sm:px-6 lg:px-8">
     <div className="mx-auto max-w-7xl">
       <DashboardHeader />
-      <header className="mb-7 flex flex-col gap-4 rounded-2xl border border-red-100 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold uppercase tracking-[0.16em] text-red-700">Personal wellness overview</p><h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Your health, clearly tracked.</h2><p className="mt-2 text-slate-600">Your last 30 days of trends, in one private place.</p></div><Link to="/update-vitals" className="inline-flex items-center justify-center rounded-xl bg-red-700 px-5 py-3 font-semibold text-white shadow-lg shadow-red-200 transition hover:-translate-y-0.5 hover:bg-red-800">Update Vitals</Link></header>
+      <header className="mb-7 flex flex-col gap-4 rounded-2xl border border-red-100 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold uppercase tracking-[0.16em] text-red-700">Personal wellness overview</p><h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Your health, clearly tracked.</h2><p className="mt-2 text-slate-600">Your last 30 days of trends, in one private place.</p></div><div className="flex flex-col gap-3 sm:flex-row"><Link to="/prescription" className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-5 py-3 font-semibold text-red-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-red-50"><span aria-hidden="true">💊</span> Understand Your Prescription</Link><Link to="/update-vitals" className="inline-flex items-center justify-center rounded-xl bg-red-700 px-5 py-3 font-semibold text-white shadow-lg shadow-red-200 transition hover:-translate-y-0.5 hover:bg-red-800">Update Vitals</Link></div></header>
 
       <section className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
         <ChartCard title="Blood Pressure (mmHg)"><BloodPressureChart /></ChartCard>
@@ -60,7 +60,7 @@ const Dashboard = () => {
       </section>
 
       <section className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm sm:p-6"><h2 className="text-xl font-bold text-slate-900">Health overview</h2><div className="mt-4"><HealthOverview logs={allLogs} selectedLog={selectedLog} onDateSelect={handleDateSelect} /></div></div>
+        <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm sm:p-6"><h2 className="text-xl font-bold text-slate-900">Health overview</h2><div className="mt-4"><HealthOverview logs={allLogs} records={records} selectedLog={selectedLog} onDateSelect={handleDateSelect} isLoading={isLoading} error={loadError} /></div></div>
         <div className="space-y-5">{severityData && <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm"><SeverityCard severity={severityData.severity} reasons={severityData.reasons} />{needsDoctor && <p className="mt-3 text-sm font-medium text-red-700">We recommend consulting a healthcare professional.</p>}</div>}<AiInsightCard analysis={analysis} loading={false} error={null} /></div>
       </section>
 

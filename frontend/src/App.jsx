@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 // import { Landing, Login, Register } from "./pages";
-import { Landing, Login, Register, Dashboard, UpdateVitals, Profile } from "./pages/index";
+import { Landing, Login, Register, Dashboard, UpdateVitals, Profile, PrescriptionAnalyzer } from "./pages/index";
 import { ProtectedRoute, ToastProvider } from "./components";
 import { ProfileProvider } from "./context/ProfileContext";
 function App() {
@@ -15,6 +15,7 @@ function App() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/update-vitals" element={<ProtectedRoute><UpdateVitals /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/prescription" element={<ProtectedRoute><PrescriptionAnalyzer /></ProtectedRoute>} />
       </Routes>
       </ProfileProvider>
       </ToastProvider>
