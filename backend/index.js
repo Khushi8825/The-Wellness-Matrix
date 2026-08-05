@@ -29,6 +29,11 @@ app.use("/api/users", userRoutes);
 const prescriptionRoutes = require("./routes/prescription.routes");
 app.use("/api/prescription", prescriptionRoutes);
 
+// Agentic AI Health Coordinator — mounted under /api/health alongside the
+// existing severity/health routes, so the frontend just adds one more call.
+const coordinatorRoutes = require("./routes/coordinator.routes");
+app.use("/api/health", coordinatorRoutes);
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
