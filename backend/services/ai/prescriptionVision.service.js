@@ -5,7 +5,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 // gemini-2.5-flash: fast + free-tier friendly + strong handwriting OCR.
 // Kept as a single constant so it's a one-line change if you ever want to
 // swap models (e.g. to a newer flash release) without touching the rest.
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemini-3.5-flash";
 
 // Every request has 30s to complete before we give up and surface a
 // friendly timeout message instead of leaving the user staring at a spinner.
@@ -71,6 +71,7 @@ const analyzePrescriptionImage = async (imageBuffer, mimeType) => {
   }
 
   const response = await ai.models.generateContent({
+    
     model: MODEL,
     contents: [
       {
@@ -91,6 +92,8 @@ const analyzePrescriptionImage = async (imageBuffer, mimeType) => {
   });
 
   const rawText = response.text;
+  console.log("Gemini Raw Response:");
+  console.log(response.text)
   if (!rawText) {
     throw new Error("EMPTY_AI_RESPONSE");
   }
