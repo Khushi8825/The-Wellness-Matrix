@@ -1,5 +1,6 @@
 const { analyzePrescriptionImage, ApiError } = require("../services/ai/prescriptionVision.service");
 const { validatePrescriptionFile } = require("../validators/prescription.validator");
+const prisma = require("../config/db");
 
 const SAFETY_WARNING =
   "This AI interpretation may contain mistakes because handwritten prescriptions can be difficult to read. " +
@@ -13,6 +14,26 @@ const analyzePrescription = async (req, res) => {
 
   try {
     const result = await analyzePrescriptionImage(req.file.buffer, req.file.mimetype);
+
+    // Phase 2 (Agentic AI upgrade): persist the analysis so the Health
+    // Coordinator can read the latest prescription automatically later,
+    // instead of it only ever existing in this one response. This is
+    // purely additive — saving never blocks or changes the response the
+    // user already gets today, and a save failure never fails the request.
+    try {
+      await prisma.prescription.create({
+        data: {
+          userId: Number(req.user.id),
+          medicines: result.medicines,
+          doctorInstructions: result.doctorInstructions,
+          overallConfidence: result.overallConfidence,
+          unreadableNotes: result.unreadableNotes,
+        },
+      });
+    } catch (saveError) {
+      console.error("Prescription save error (non-fatal):", saveError.message);
+    }
+
     return res.status(200).json({ ...result, safetyWarning: SAFETY_WARNING });
   } catch (err) {
     console.error("Prescription analysis error:", err);

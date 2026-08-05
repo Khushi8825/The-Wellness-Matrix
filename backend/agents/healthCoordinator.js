@@ -1,12 +1,13 @@
 const prisma = require("../config/db");
 const { runVitalsAgent } = require("./vitalsAgent");
 const { runTrendAgent } = require("./trendAgent");
+const { runPrescriptionAgent } = require("./prescriptionAgent");
 
 // ----------------------------------------------------------------------
 // PHASE STATUS (update this as later phases land):
 //   ✅ Vitals Agent            (Phase 1)
 //   ✅ Trend Agent             (Phase 1)
-//   ⏳ Prescription Agent      (Phase 2 - needs Prescription table)
+//   ✅ Prescription Agent      (Phase 2)
 //   ⏳ Risk Assessment Agent   (Phase 3)
 //   ⏳ Lifestyle Agent         (Phase 4)
 //   ⏳ Report Generator Agent  (Phase 4)
@@ -50,8 +51,14 @@ const runHealthCoordinator = async (userId) => {
     orderBy: { logDate: "asc" },
   });
 
-  // Step 3 — fetch latest prescription data (Phase 2)
-  const latestPrescription = null; // TODO(Phase 2): replace with a real Prisma lookup
+  // Step 3 — fetch latest prescription data (only the single most recent
+  // one — deliberately NOT merged with older prescriptions, so a past,
+  // possibly-discontinued medication never gets blended into "current"
+  // health trends).
+  const latestPrescription = await prisma.prescription.findFirst({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
 
   // Step 3.5 — Emergency Detection short-circuit (Phase 3)
   // TODO(Phase 3): if latestLog crosses an emergency threshold, stop here
@@ -64,8 +71,8 @@ const runHealthCoordinator = async (userId) => {
   // Step 5 — Trend Analysis Agent
   const trendResult = await runTrendAgent(last30DaysLogs);
 
-  // Step 6 — Prescription Analysis Agent (Phase 2)
-  const prescriptionResult = { status: "pending", note: "Prescription Agent arrives in Phase 2." };
+  // Step 6 — Prescription Analysis Agent
+  const prescriptionResult = await runPrescriptionAgent(latestPrescription);
 
   // Step 7 — Risk Assessment Agent (Phase 3)
   const riskResult = { status: "pending", note: "Risk Assessment Agent arrives in Phase 3." };
