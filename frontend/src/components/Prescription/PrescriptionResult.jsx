@@ -1,3 +1,5 @@
+import AIExplanationBox from "./AIExplanationBox";
+
 const CONFIDENCE_STYLES = {
   High: "bg-emerald-50 text-emerald-700 border-emerald-200",
   Medium: "bg-amber-50 text-amber-700 border-amber-200",
@@ -83,6 +85,10 @@ const PrescriptionResult = ({ result }) => {
           </ul>
         </section>
       )}
+
+      {/* ADDITIVE: new AI Explanation Box. Uses the same `result` data already
+          fetched above — does not call, alter, or depend on /prescription/analyze. */}
+      <AIExplanationBox result={result} />
     </div>
   );
 };
