@@ -19,6 +19,7 @@ model User {
   profileImage   String?          @map("profile_image") @db.VarChar(255)
   healthLogs     HealthLog[]
   healthSeverity HealthSeverity[]
+  prescriptions  Prescription[]
 
   @@map("users")
 }
@@ -53,4 +54,22 @@ model HealthSeverity {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_severity_user")
 
   @@map("health_severity")
+}
+
+/// NEW (Phase 2 of the Agentic AI upgrade): prescription analyses were
+/// previously generated and shown once, never saved. This table persists
+/// each analysis so the Health Coordinator can automatically pull the
+/// user's latest prescription without requiring a fresh upload every time.
+/// Nothing about the existing tables above was changed.
+model Prescription {
+  id                 BigInt    @id @default(autoincrement())
+  userId             Int       @map("user_id")
+  medicines          Json      @map("medicines")
+  doctorInstructions Json?     @map("doctor_instructions")
+  overallConfidence  String?   @map("overall_confidence") @db.VarChar(20)
+  unreadableNotes    String?   @map("unreadable_notes")
+  createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_prescription_user")
+
+  @@map("prescriptions")
 }

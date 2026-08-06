@@ -22,9 +22,7 @@
     "groq-sdk": "^0.37.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
-    "pg": "^8.17.2"
-  },
-  "devDependencies": {
+    "pg": "^8.17.2",
     "prisma": "^6.19.0"
   }
 }
