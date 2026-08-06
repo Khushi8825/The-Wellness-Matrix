@@ -3,6 +3,8 @@ const { runVitalsAgent } = require("./vitalsAgent");
 const { runTrendAgent } = require("./trendAgent");
 const { runPrescriptionAgent } = require("./prescriptionAgent");
 const { runRiskAssessmentAgent } = require("./riskAssessmentAgent");
+const { runLifestyleAgent } = require("./lifestyleAgent");
+const { runReportGeneratorAgent } = require("./reportGeneratorAgent");
 const { checkEmergency } = require("./emergencyDetector");
 
 // ----------------------------------------------------------------------
@@ -11,8 +13,8 @@ const { checkEmergency } = require("./emergencyDetector");
 //   ✅ Trend Agent             (Phase 1)
 //   ✅ Prescription Agent      (Phase 2)
 //   ✅ Risk Assessment Agent   (Phase 3)
-//   ⏳ Lifestyle Agent         (Phase 4)
-//   ⏳ Report Generator Agent  (Phase 4)
+//   ✅ Lifestyle Agent         (Phase 4)
+//   ✅ Report Generator Agent  (Phase 4)
 //   ✅ Emergency Detection     (Phase 3)
 // ----------------------------------------------------------------------
 
@@ -100,13 +102,16 @@ const runHealthCoordinator = async (userId) => {
   // Step 7 — Risk Assessment Agent
   const riskResult = await runRiskAssessmentAgent(vitalsResult, trendResult, prescriptionResult);
 
-  // Step 8 — Lifestyle Recommendation Agent (Phase 4)
-  const lifestyleResult = { status: "pending", note: "Lifestyle Agent arrives in Phase 4." };
+  // Step 8 — Lifestyle Recommendation Agent
+  const lifestyleResult = await runLifestyleAgent(vitalsResult, trendResult, prescriptionResult, riskResult);
 
-  // Step 9 — Report Generator Agent (Phase 4)
-  // TODO(Phase 4): combine every result above into one final report.
+  // Step 9 — Report Generator Agent
+  const report = await runReportGeneratorAgent({ vitalsResult, trendResult, prescriptionResult, riskResult, lifestyleResult });
 
-  // Step 10 — return aggregated (partial, for now) result
+  // Step 10 — return the aggregated result. The full per-agent outputs are
+  // still included alongside `report` so the frontend (Phase 5) can show
+  // individual sections (e.g. a dedicated Trend card) without having to
+  // re-parse the synthesized report text.
   return {
     generatedAt: new Date().toISOString(),
     emergency: null,
@@ -115,7 +120,7 @@ const runHealthCoordinator = async (userId) => {
     prescription: prescriptionResult,
     risk: riskResult,
     lifestyle: lifestyleResult,
-    report: null, // populated once the Report Generator Agent exists (Phase 4)
+    report,
   };
 };
 
