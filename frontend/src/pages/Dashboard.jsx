@@ -4,6 +4,7 @@ import BloodPressureChart from "../components/Charts/BloodPressureChart";
 import HeartRateChart from "../components/Charts/HeartRateChart";
 import SleepChart from "../components/Charts/SleepChart";
 import HealthOverview from "../components/HealthOverview/HealthOverview";
+import AIHealthCoordinatorSection from "../components/AICoordinator/AIHealthCoordinatorSection";
 import { AiInsightCard, DashboardHeader, HealthRecords, SeverityCard } from "../components";
 
 const Dashboard = () => {
@@ -63,6 +64,8 @@ const Dashboard = () => {
         <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm sm:p-6"><h2 className="text-xl font-bold text-slate-900">Health overview</h2><div className="mt-4"><HealthOverview logs={allLogs} records={records} selectedLog={selectedLog} onDateSelect={handleDateSelect} isLoading={isLoading} error={loadError} /></div></div>
         <div className="space-y-5">{severityData && <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm"><SeverityCard severity={severityData.severity} reasons={severityData.reasons} />{needsDoctor && <p className="mt-3 text-sm font-medium text-red-700">We recommend consulting a healthcare professional.</p>}</div>}<AiInsightCard analysis={analysis} loading={false} error={null} /></div>
       </section>
+
+      <AIHealthCoordinatorSection />
 
       <section className="mt-8 rounded-2xl border border-red-100 bg-white p-5 shadow-sm sm:p-6"><div className="mb-5 flex items-baseline justify-between gap-4"><div><h2 className="text-xl font-bold text-slate-900">Your health records</h2><p className="mt-1 text-sm text-slate-600">Newest first · your complete record history</p></div><span className="text-xs font-medium text-slate-500">{records.length} record{records.length === 1 ? "" : "s"}</span></div><HealthRecords logs={records} loading={isLoading} error={loadError} /></section>
     </div>
