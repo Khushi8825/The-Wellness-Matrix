@@ -2,16 +2,18 @@ const prisma = require("../config/db");
 const { runVitalsAgent } = require("./vitalsAgent");
 const { runTrendAgent } = require("./trendAgent");
 const { runPrescriptionAgent } = require("./prescriptionAgent");
+const { runRiskAssessmentAgent } = require("./riskAssessmentAgent");
+const { checkEmergency } = require("./emergencyDetector");
 
 // ----------------------------------------------------------------------
 // PHASE STATUS (update this as later phases land):
 //   ✅ Vitals Agent            (Phase 1)
 //   ✅ Trend Agent             (Phase 1)
 //   ✅ Prescription Agent      (Phase 2)
-//   ⏳ Risk Assessment Agent   (Phase 3)
+//   ✅ Risk Assessment Agent   (Phase 3)
 //   ⏳ Lifestyle Agent         (Phase 4)
 //   ⏳ Report Generator Agent  (Phase 4)
-//   ⏳ Emergency Detection     (Phase 3)
+//   ✅ Emergency Detection     (Phase 3)
 // ----------------------------------------------------------------------
 
 /**
@@ -43,6 +45,29 @@ const runHealthCoordinator = async (userId) => {
     orderBy: { logDate: "desc" },
   });
 
+  // Step 1.5 — Emergency Detection short-circuit. Runs immediately after
+  // the cheapest possible query and BEFORE any AI call, so a true
+  // emergency is caught even if Gemini is slow or down, and the patient
+  // isn't kept waiting on trend/prescription/risk reasoning they don't
+  // need right now.
+  const emergencyCheck = checkEmergency(latestLog);
+  if (emergencyCheck.isEmergency) {
+    return {
+      generatedAt: new Date().toISOString(),
+      emergency: {
+        isEmergency: true,
+        triggers: emergencyCheck.triggers,
+        advice: "This reading is outside safe limits. Please seek immediate medical attention or contact emergency services now.",
+      },
+      vitals: null,
+      trends: null,
+      prescription: null,
+      risk: null,
+      lifestyle: null, // deliberately skipped per the emergency workflow
+      report: null,
+    };
+  }
+
   // Step 2 — fetch last 30 days of health records
   const thirtyDaysAgo = startOfUtcDay();
   thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 29);
@@ -60,10 +85,8 @@ const runHealthCoordinator = async (userId) => {
     orderBy: { createdAt: "desc" },
   });
 
-  // Step 3.5 — Emergency Detection short-circuit (Phase 3)
-  // TODO(Phase 3): if latestLog crosses an emergency threshold, stop here
-  // and return an Emergency Alert payload instead of continuing the
-  // normal pipeline.
+  // Step 3.5 — Emergency Detection already ran in Step 1.5 (see above) and
+  // this point is only reached when it did not trigger.
 
   // Step 4 — Vitals Analysis Agent
   const vitalsResult = await runVitalsAgent(latestLog);
@@ -74,8 +97,8 @@ const runHealthCoordinator = async (userId) => {
   // Step 6 — Prescription Analysis Agent
   const prescriptionResult = await runPrescriptionAgent(latestPrescription);
 
-  // Step 7 — Risk Assessment Agent (Phase 3)
-  const riskResult = { status: "pending", note: "Risk Assessment Agent arrives in Phase 3." };
+  // Step 7 — Risk Assessment Agent
+  const riskResult = await runRiskAssessmentAgent(vitalsResult, trendResult, prescriptionResult);
 
   // Step 8 — Lifestyle Recommendation Agent (Phase 4)
   const lifestyleResult = { status: "pending", note: "Lifestyle Agent arrives in Phase 4." };
