@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config/api";
+import useProfile from "../hooks/useProfile";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -33,6 +34,7 @@ function GoogleIcon() {
 // (the default GIS button can't be restyled to match the app's look).
 function GoogleAuthButton({ label = "Continue with Google" }) {
   const navigate = useNavigate();
+  const { refreshProfile } = useProfile();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const tokenClientRef = useRef(null);
@@ -68,6 +70,7 @@ function GoogleAuthButton({ label = "Continue with Google" }) {
 
             localStorage.setItem("token", data.token);
             localStorage.setItem("email", data.email);
+            await refreshProfile();
             navigate("/dashboard");
           } catch {
             setError("Server error. Please try again later.");

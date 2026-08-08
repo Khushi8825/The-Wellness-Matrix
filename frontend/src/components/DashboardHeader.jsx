@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useProfile from "../hooks/useProfile";
 
 const DashboardHeader = ({ title = "Health Dashboard" }) => {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
+  const { refreshProfile } = useProfile();
   const username = localStorage.getItem("username") || "Wellness Member";
   const initial = username.charAt(0).toUpperCase();
 
@@ -21,6 +23,7 @@ const DashboardHeader = ({ title = "Health Dashboard" }) => {
     localStorage.removeItem("email");
     localStorage.removeItem("username");
     localStorage.removeItem("wellness-ai-analysis");
+    refreshProfile(); // no token now → context clears the stale profile immediately
     navigate("/login");
   };
 

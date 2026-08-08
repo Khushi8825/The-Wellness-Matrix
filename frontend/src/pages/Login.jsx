@@ -2,9 +2,11 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { GoogleAuthButton } from "../components";
+import useProfile from "../hooks/useProfile";
 
 function Login() {
   const navigate = useNavigate();
+  const { refreshProfile } = useProfile();
     const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -31,6 +33,7 @@ function Login() {
 
       localStorage.setItem("token", data.token); // ✅ save JWT
       localStorage.setItem("email", formData.email);
+      await refreshProfile();                    // ✅ replace any stale profile from a previous session
       navigate("/dashboard");                    // ✅ redirect
     } catch {
       setError("Server error. Please try again later.");
