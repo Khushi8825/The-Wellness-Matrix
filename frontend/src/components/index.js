@@ -12,3 +12,4 @@ export { ToastProvider } from "./Toast";
 export { default as HealthRecords } from "./HealthRecords";
 export { default as DashboardHeader } from "./DashboardHeader";
 export { default as AiInsightCard } from "./AiInsightCard";
+export { default as GoogleAuthButton } from "./GoogleAuthButton";

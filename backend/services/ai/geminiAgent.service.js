@@ -11,7 +11,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 // meant to be "gemini-2.5-flash" per its own comment). We're not touching
 // that existing file per your "don't modify existing features" instruction
 // — just flagging it here so you can fix it separately if it's a typo.
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemini-flash-lite-latest";
 
 const REQUEST_TIMEOUT_MS = 30000;
 

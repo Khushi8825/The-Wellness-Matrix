@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { GoogleAuthButton } from "../components";
  
 
 function Register() {
@@ -188,6 +189,15 @@ function Register() {
             Register
           </button>
         </form>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-gray-300" />
+          <span className="text-sm text-gray-600">or</span>
+          <div className="flex-1 h-px bg-gray-300" />
+        </div>
+
+        <GoogleAuthButton label="Continue with Google" />
 
         <p className="text-center text-sm text-gray-700 mt-6">
           Already have an account?{" "}
