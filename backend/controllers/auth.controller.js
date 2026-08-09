@@ -17,7 +17,8 @@ exports.register = async (req, res) => {
     });
     return res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error("Register error:", err);
+    return res.status(500).json({ message: "Registration failed. Please try again." });
   }
 };
 
@@ -32,7 +33,8 @@ exports.login = async (req, res) => {
     const token = jwt.sign({ id: user.id.toString() }, process.env.JWT_SECRET, { expiresIn: "7d" });
     return res.json({ token });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error("Login error:", err);
+    return res.status(500).json({ message: "Login failed. Please try again." });
   }
 };
 
@@ -79,10 +81,15 @@ exports.googleAuth = async (req, res) => {
       return res.status(401).json({ message: "Failed to fetch Google profile" });
     }
     const profile = await profileRes.json();
-    const { sub: googleId, email, name, picture } = profile;
+    const { sub: googleId, email, email_verified, name, picture } = profile;
 
     if (!email) {
       return res.status(400).json({ message: "Google account has no email" });
+    }
+    if (!email_verified) {
+      return res.status(400).json({
+        message: "Your Google email isn't verified. Please log in with your password instead.",
+      });
     }
 
     let user = await prisma.user.findUnique({ where: { googleId } });
@@ -120,6 +127,7 @@ exports.googleAuth = async (req, res) => {
     const token = jwt.sign({ id: user.id.toString() }, process.env.JWT_SECRET, { expiresIn: "7d" });
     return res.json({ token, email: user.email });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error("Google auth error:", err);
+    return res.status(500).json({ message: "Google login failed. Please try again." });
   }
 };

@@ -7,7 +7,10 @@ const authRoutes = require("./routes/auth.routes");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL, // only this frontend is allowed to call the API
+  credentials: true,                // lets cookies/auth headers pass through if used later
+}));
 app.use(express.json());
 
 // Serve uploaded profile pictures
