@@ -1,6 +1,7 @@
 const { analyzePrescriptionImage, ApiError } = require("../services/ai/prescriptionVision.service");
 const { validatePrescriptionFile } = require("../validators/prescription.validator");
 const prisma = require("../config/db");
+const redisClient = require("../config/redis");
 
 const SAFETY_WARNING =
   "This AI interpretation may contain mistakes because handwritten prescriptions can be difficult to read. " +
@@ -30,6 +31,14 @@ const analyzePrescription = async (req, res) => {
           unreadableNotes: result.unreadableNotes,
         },
       });
+
+      // New prescription data — the AI Coordinator report depends on the
+      // latest prescription, so invalidate its cache for this user.
+      try {
+        await redisClient.del(`coordinator:${Number(req.user.id)}`);
+      } catch (cacheError) {
+        console.error("Coordinator cache invalidation error (non-fatal):", cacheError.message);
+      }
     } catch (saveError) {
       console.error("Prescription save error (non-fatal):", saveError.message);
     }

@@ -1,6 +1,26 @@
 const { generateHealthExplanation } = require("../services/ai/healthExplanation.service");
 const prisma = require("../config/db");
 const analyzeSeverity = require("../services/severity");
+const redisClient = require("../config/redis");
+
+// 10 minutes — read-heavy dashboard data (chart/records) that's cheap to
+// regenerate, so a short TTL plus explicit invalidation on write is enough.
+const HEALTH_CACHE_TTL_SECONDS = 10 * 60;
+const chartCacheKey = (userId) => `chart:${userId}`;
+const recordsCacheKey = (userId) => `records:${userId}`;
+const coordinatorCacheKey = (userId) => `coordinator:${userId}`;
+
+// Invalidates every cache entry that depends on this user's health logs:
+// the chart/records caches (Redis integration #3) and the AI coordinator
+// report cache (Redis integration #2), since new log data changes what
+// both would return.
+const invalidateHealthCaches = async (userId) => {
+  try {
+    await redisClient.del(chartCacheKey(userId), recordsCacheKey(userId), coordinatorCacheKey(userId));
+  } catch (cacheError) {
+    console.error("Health cache invalidation error (non-fatal):", cacheError.message);
+  }
+};
 
 const startOfUtcDay = (date = new Date()) => {
   const value = new Date(date);
@@ -40,6 +60,10 @@ const addHealthLog = async (req, res) => {
       update: { ...data, updatedAt: new Date() },
     });
 
+    // New/changed log data — invalidate chart, records, and coordinator
+    // caches for this user so the next read reflects it.
+    await invalidateHealthCaches(userId);
+
     const sevenDaysAgo = startOfUtcDay();
     sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
     const recentLogs = await prisma.healthLog.findMany({
@@ -77,12 +101,30 @@ const addHealthLog = async (req, res) => {
 
 const getHealthChartData = async (req, res) => {
   try {
+    const userId = Number(req.user.id);
+    const cacheKey = chartCacheKey(userId);
+
+    try {
+      const cached = await redisClient.get(cacheKey);
+      if (cached) return res.json(JSON.parse(cached));
+    } catch (cacheError) {
+      console.error("Chart cache read error (non-fatal):", cacheError.message);
+    }
+
     const startDate = startOfUtcDay();
     startDate.setUTCDate(startDate.getUTCDate() - 29);
     const logs = await prisma.healthLog.findMany({
-      where: { userId: Number(req.user.id), logDate: { gte: startDate } }, orderBy: { logDate: "asc" },
+      where: { userId, logDate: { gte: startDate } }, orderBy: { logDate: "asc" },
     });
-    return res.json(logs.map(toApiLog));
+    const payload = logs.map(toApiLog);
+
+    try {
+      await redisClient.set(cacheKey, JSON.stringify(payload), "EX", HEALTH_CACHE_TTL_SECONDS);
+    } catch (cacheError) {
+      console.error("Chart cache write error (non-fatal):", cacheError.message);
+    }
+
+    return res.json(payload);
   } catch (error) {
     console.error("Chart data error:", error);
     return res.status(500).json({ message: "Failed to fetch chart data" });
@@ -91,10 +133,28 @@ const getHealthChartData = async (req, res) => {
 
 const getHealthRecords = async (req, res) => {
   try {
+    const userId = Number(req.user.id);
+    const cacheKey = recordsCacheKey(userId);
+
+    try {
+      const cached = await redisClient.get(cacheKey);
+      if (cached) return res.json(JSON.parse(cached));
+    } catch (cacheError) {
+      console.error("Records cache read error (non-fatal):", cacheError.message);
+    }
+
     const logs = await prisma.healthLog.findMany({
-      where: { userId: Number(req.user.id) }, orderBy: { logDate: "desc" },
+      where: { userId }, orderBy: { logDate: "desc" },
     });
-    return res.json(logs.map(toApiLog));
+    const payload = logs.map(toApiLog);
+
+    try {
+      await redisClient.set(cacheKey, JSON.stringify(payload), "EX", HEALTH_CACHE_TTL_SECONDS);
+    } catch (cacheError) {
+      console.error("Records cache write error (non-fatal):", cacheError.message);
+    }
+
+    return res.json(payload);
   } catch (error) {
     console.error("Health records error:", error);
     return res.status(500).json({ message: "Failed to fetch health records" });
